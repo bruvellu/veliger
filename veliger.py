@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 01 Jun 2010 01:06AM
+# Atualizado: 06 Jul 2010 05:46PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -971,20 +971,7 @@ class MainWindow(QMainWindow):
         '''O que fazer quando o programa for fechado.'''
         self.cachetable()
         self.writesettings()
-        event.accept()
-        #reply = QMessageBox.question(
-        #        self,
-        #        u'Atenção!',
-        #        u'O programa será finalizado.\nVocê está certo disso?',
-        #        QMessageBox.Yes,
-        #        QMessageBox.No
-        #        )
-        #if reply == QMessageBox.Yes:
-        #    self.cachetable()
-        #    self.writesettings()
-        #    event.accept()
-        #else:
-        #    event.ignore()
+        #event.accept()
 
 
 class ManualDialog(QDialog):
@@ -2444,7 +2431,7 @@ class InitPs():
                 ]
         
         # Nome do arquivo Pickle para tabela
-        tablepickle = 'tablecache'
+        tablepickle = '.tablecache'
         try:
             tablecache = open(tablepickle, 'rb')
             datalist = pickle.load(tablecache)
@@ -2464,7 +2451,7 @@ class InitPs():
                 u'', u'', u'', u'', u'',
                 ],]
         # Nome do arquivo Pickle para lista
-        listpickle = 'listcache'
+        listpickle = '.listcache'
         try:
             listcache = open(listpickle, 'rb')
             updatelist = pickle.load(listcache)
@@ -2475,7 +2462,7 @@ class InitPs():
             updatelist = []
 
         # Nome do arquivo Pickle para autocomplete
-        autopickle = 'autocomplete'
+        autopickle = '.autocomplete'
         try:
             autocomplete = open(autopickle, 'rb')
             autolists = pickle.load(autocomplete)
