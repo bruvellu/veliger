@@ -1,0 +1,675 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Descrição das classes e funções do VÉLIGER &mdash; VELIGER - Editor de metadados v0.6.0b documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.6.0b',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="top" title="VELIGER - Editor de metadados v0.6.0b documentation" href="index.html" />
+    <link rel="prev" title="Documentação do editor de metadados VÉLIGER" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice Geral"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Índice Global de Módulos"
+             accesskey="M">módulos</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Documentação do editor de metadados VÉLIGER"
+             accesskey="P">anterior</a> |</li>
+        <li><a href="index.html">VELIGER - Editor de metadados v0.6.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-veliger">
+<h1>Descrição das classes e funções do VÉLIGER<a class="headerlink" href="#module-veliger" title="Link permanente para este título">¶</a></h1>
+<p>Editor de metadados do banco de imagens do CEBIMar-USP.</p>
+<p>Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
+interface para editar estas informações. Os campos foram adaptados para o
+propósito do banco, que é divulgar imagens com conteúdo biológico.</p>
+<p>Campos editáveis: título, legenda, marcadores, táxon, espécie, especialista,
+autor, direitos, tamanho, local, cidade, estado e país.</p>
+<p>Centro de Biologia Marinha da Universidade de São Paulo.</p>
+<dl class="class">
+<dt id="veliger.AboutDialog">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">AboutDialog</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.AboutDialog" title="Link permanente para esta definição">¶</a></dt>
+<dd>Janela com informações sobre o programa.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.AutoModels">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">AutoModels</tt><big>(</big><em>list</em><big>)</big><a class="headerlink" href="#veliger.AutoModels" title="Link permanente para esta definição">¶</a></dt>
+<dd>Cria modelos para autocompletar campos de edição.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.CompleterLineEdit">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">CompleterLineEdit</tt><big>(</big><em>*args</em><big>)</big><a class="headerlink" href="#veliger.CompleterLineEdit" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Editor especial para marcadores.</p>
+<p>Adaptado de John Schember:
+john.nachtimwald.com/2009/07/04/qcompleter-and-comma-separated-tags/</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.DockEditor">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">DockEditor</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.DockEditor" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Dock com campos para edição dos metadados.</p>
+<dl class="method">
+<dt id="veliger.DockEditor.autolistgen">
+<tt class="descname">autolistgen</tt><big>(</big><em>models</em><big>)</big><a class="headerlink" href="#veliger.DockEditor.autolistgen" title="Link permanente para esta definição">¶</a></dt>
+<dd>Gera autocompletadores dos campos.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockEditor.savedata">
+<tt class="descname">savedata</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockEditor.savedata" title="Link permanente para esta definição">¶</a></dt>
+<dd>Salva valores dos campos para a tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockEditor.setcurrent">
+<tt class="descname">setcurrent</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#veliger.DockEditor.setcurrent" title="Link permanente para esta definição">¶</a></dt>
+<dd>Atualiza campos de edição quando entrada é selecionada na tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockEditor.setsingle">
+<tt class="descname">setsingle</tt><big>(</big><em>index</em>, <em>value</em>, <em>oldvalue</em><big>)</big><a class="headerlink" href="#veliger.DockEditor.setsingle" title="Link permanente para esta definição">¶</a></dt>
+<dd>Atualiza campo de edição correspondente quando dado é alterado.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.DockGeo">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">DockGeo</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.DockGeo" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Dock para editar a geolocalização da imagem.</p>
+<dl class="method">
+<dt id="veliger.DockGeo.geodict">
+<tt class="descname">geodict</tt><big>(</big><em>string</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.geodict" title="Link permanente para esta definição">¶</a></dt>
+<dd>Extrai coordenadas da string do editor.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.get_decimal">
+<tt class="descname">get_decimal</tt><big>(</big><em>ref</em>, <em>deg</em>, <em>min</em>, <em>sec</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.get_decimal" title="Link permanente para esta definição">¶</a></dt>
+<dd>Descobre o valor decimal das coordenadas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.get_exif">
+<tt class="descname">get_exif</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.get_exif" title="Link permanente para esta definição">¶</a></dt>
+<dd>Extrai o exif da imagem selecionada usando o pyexiv2 0.1.3.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.load_geocode">
+<tt class="descname">load_geocode</tt><big>(</big><em>gps</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.load_geocode" title="Link permanente para esta definição">¶</a></dt>
+<dd>Pega coordenadas e chama mapa com as variáveis correspondetes.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.newgps">
+<tt class="descname">newgps</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockGeo.newgps" title="Link permanente para esta definição">¶</a></dt>
+<dd>Pega as novas coordenadas do editor.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.resolve">
+<tt class="descname">resolve</tt><big>(</big><em>frac</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.resolve" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Resolve a fração das coordenadas para int.</p>
+<p>Por padrão os valores do exif são guardados como frações. Por isso é
+necessário converter.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.setcurrent">
+<tt class="descname">setcurrent</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.setcurrent" title="Link permanente para esta definição">¶</a></dt>
+<dd>Mostra geolocalização da imagem selecionada.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.setdms">
+<tt class="descname">setdms</tt><big>(</big><em>dms</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.setdms" title="Link permanente para esta definição">¶</a></dt>
+<dd>Atualiza as coordenadas do editor.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.state">
+<tt class="descname">state</tt><big>(</big><em>visible</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.state" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Relata se aba está visível e/ou selecionada.</p>
+<p>Captura sinal emitido pelo mainWidget.</p>
+<p>Por não distinguir entre visível e aba selecionada não funciona em
+algumas situações.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.un_decimal">
+<tt class="descname">un_decimal</tt><big>(</big><em>lat</em>, <em>long</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.un_decimal" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Converte o valor decimal das coordenadas.</p>
+<p>Retorna dicionário com referência cardinal, graus, minutos e segundos.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.update_geo">
+<tt class="descname">update_geo</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockGeo.update_geo" title="Link permanente para esta definição">¶</a></dt>
+<dd>Captura as coordenadas do marcador para atualizar o editor.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.write_geo">
+<tt class="descname">write_geo</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockGeo.write_geo" title="Link permanente para esta definição">¶</a></dt>
+<dd>Grava novas coordenadas nas imagens selecionadas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockGeo.write_html">
+<tt class="descname">write_html</tt><big>(</big><em>unset=0</em>, <em>lat=0.0</em>, <em>long=0.0</em>, <em>zoom=5</em><big>)</big><a class="headerlink" href="#veliger.DockGeo.write_html" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Carrega código HTML da QWebView com mapa do Google Maps.</p>
+<p>Usando o API V3.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.DockThumb">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">DockThumb</tt><a class="headerlink" href="#veliger.DockThumb" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Dock para mostrar o thumbnail da imagem selecionada.</p>
+<dl class="method">
+<dt id="veliger.DockThumb.pixmapcache">
+<tt class="descname">pixmapcache</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#veliger.DockThumb.pixmapcache" title="Link permanente para esta definição">¶</a></dt>
+<dd>Cria cache para thumbnail.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockThumb.resizeEvent">
+<tt class="descname">resizeEvent</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#veliger.DockThumb.resizeEvent" title="Link permanente para esta definição">¶</a></dt>
+<dd>Lida com redimensionamento do thumbnail.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockThumb.setcurrent">
+<tt class="descname">setcurrent</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#veliger.DockThumb.setcurrent" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Mostra thumbnail, nome e data de modificação da imagem.</p>
+<p>Captura sinal com valores, tenta achar imagem no cache e exibe
+informações.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockThumb.updateThumb">
+<tt class="descname">updateThumb</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockThumb.updateThumb" title="Link permanente para esta definição">¶</a></dt>
+<dd>Atualiza thumbnail.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.DockUnsaved">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">DockUnsaved</tt><a class="headerlink" href="#veliger.DockUnsaved" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Exibe lista com imagens modificadas.</p>
+<p>Utiliza dados do modelo em lista. Qualquer imagem modificada será
+adicionada à lista. Seleção na lista seleciona entrada na tabela. Gravar
+salva metadados de cada ítem da lista nas respectivas imagens.</p>
+<dl class="method">
+<dt id="veliger.DockUnsaved.clearlist">
+<tt class="descname">clearlist</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.clearlist" title="Link permanente para esta definição">¶</a></dt>
+<dd>Remove todas as entradas da lista.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.delentry">
+<tt class="descname">delentry</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.delentry" title="Link permanente para esta definição">¶</a></dt>
+<dd>Remove entrada da lista.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.insertentry">
+<tt class="descname">insertentry</tt><big>(</big><em>index</em>, <em>value</em>, <em>oldvalue</em><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.insertentry" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Insere entrada na lista.</p>
+<p>Checa se a modificação não foi nula (valor atual == valor anterior) e
+se a entrada é duplicada.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.matchfinder">
+<tt class="descname">matchfinder</tt><big>(</big><em>candidate</em><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.matchfinder" title="Link permanente para esta definição">¶</a></dt>
+<dd>Buscador de duplicatas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.resizeEvent">
+<tt class="descname">resizeEvent</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.resizeEvent" title="Link permanente para esta definição">¶</a></dt>
+<dd>Lida com redimensionamentos.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.sync_setselection">
+<tt class="descname">sync_setselection</tt><big>(</big><em>selected</em>, <em>deselected</em><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.sync_setselection" title="Link permanente para esta definição">¶</a></dt>
+<dd>Sincroniza seleção da tabela com a seleção da lista.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.DockUnsaved.writeselected">
+<tt class="descname">writeselected</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.DockUnsaved.writeselected" title="Link permanente para esta definição">¶</a></dt>
+<dd>Emite sinal para gravar metadados na imagem.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.EditCompletion">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">EditCompletion</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.EditCompletion" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Editor dos valores para autocompletar campos de edição.</p>
+<dl class="method">
+<dt id="veliger.EditCompletion.buildview">
+<tt class="descname">buildview</tt><big>(</big><em>modellist</em><big>)</big><a class="headerlink" href="#veliger.EditCompletion.buildview" title="Link permanente para esta definição">¶</a></dt>
+<dd>Gera view do modelo escolhido.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.EditCompletion.insertrow">
+<tt class="descname">insertrow</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.EditCompletion.insertrow" title="Link permanente para esta definição">¶</a></dt>
+<dd>Insere linha no modelo.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.EditCompletion.populate">
+<tt class="descname">populate</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.EditCompletion.populate" title="Link permanente para esta definição">¶</a></dt>
+<dd>Extrai valores das fotos e popula modelo.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.EditCompletion.removerow">
+<tt class="descname">removerow</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.EditCompletion.removerow" title="Link permanente para esta definição">¶</a></dt>
+<dd>Remove linha do modelo.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.FlushFile">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">FlushFile</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#veliger.FlushFile" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Tira o buffer do print.</p>
+<p>Assim rola juntar prints diferentes na mesma linha. Só pra ficar
+bonitinho... meio inútil.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.InitPs">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">InitPs</tt><a class="headerlink" href="#veliger.InitPs" title="Link permanente para esta definição">¶</a></dt>
+<dd>Inicia variáveis e parâmetros globais do programa.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.ListModel">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">ListModel</tt><big>(</big><em>parent</em>, <em>list</em>, <em>*args</em><big>)</big><a class="headerlink" href="#veliger.ListModel" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Modelo com lista de imagens modificadas.</p>
+<dl class="method">
+<dt id="veliger.ListModel.data">
+<tt class="descname">data</tt><big>(</big><em>index</em>, <em>role</em><big>)</big><a class="headerlink" href="#veliger.ListModel.data" title="Link permanente para esta definição">¶</a></dt>
+<dd>Cria elementos da lista a partir dos dados.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.ListModel.insert_rows">
+<tt class="descname">insert_rows</tt><big>(</big><em>position</em>, <em>rows</em>, <em>parent</em>, <em>entry</em><big>)</big><a class="headerlink" href="#veliger.ListModel.insert_rows" title="Link permanente para esta definição">¶</a></dt>
+<dd>Insere linhas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.ListModel.remove_rows">
+<tt class="descname">remove_rows</tt><big>(</big><em>position</em>, <em>rows</em>, <em>parent</em><big>)</big><a class="headerlink" href="#veliger.ListModel.remove_rows" title="Link permanente para esta definição">¶</a></dt>
+<dd>Remove linhas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.ListModel.rowCount">
+<tt class="descname">rowCount</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.ListModel.rowCount" title="Link permanente para esta definição">¶</a></dt>
+<dd>Conta linhas.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.MainCompleter">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">MainCompleter</tt><big>(</big><em>model</em>, <em>parent</em><big>)</big><a class="headerlink" href="#veliger.MainCompleter" title="Link permanente para esta definição">¶</a></dt>
+<dd>Autocomplete principal.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.MainTable">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">MainTable</tt><big>(</big><em>datalist</em>, <em>header</em>, <em>*args</em><big>)</big><a class="headerlink" href="#veliger.MainTable" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Tabela principal com entradas.</p>
+<dl class="method">
+<dt id="veliger.MainTable.changecurrent">
+<tt class="descname">changecurrent</tt><big>(</big><em>current</em>, <em>previous</em><big>)</big><a class="headerlink" href="#veliger.MainTable.changecurrent" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Identifica a célula selecionada, extrai valores e envia para editor.</p>
+<p>Os valores são enviados através de um sinal.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.editmultiple">
+<tt class="descname">editmultiple</tt><big>(</big><em>index</em>, <em>value</em>, <em>oldvalue</em><big>)</big><a class="headerlink" href="#veliger.MainTable.editmultiple" title="Link permanente para esta definição">¶</a></dt>
+<dd>Edita outras linhas selecionadas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.emitlost">
+<tt class="descname">emitlost</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#veliger.MainTable.emitlost" title="Link permanente para esta definição">¶</a></dt>
+<dd>Emite aviso para remover entrada da lista de modificados.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.emitsaved">
+<tt class="descname">emitsaved</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainTable.emitsaved" title="Link permanente para esta definição">¶</a></dt>
+<dd>Emite aviso que os metadados foram gravados nos arquivos.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.outputrows">
+<tt class="descname">outputrows</tt><big>(</big><em>toprow</em><big>)</big><a class="headerlink" href="#veliger.MainTable.outputrows" title="Link permanente para esta definição">¶</a></dt>
+<dd>Identifica linhas dentro do campo de visão da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.resizecols">
+<tt class="descname">resizecols</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#veliger.MainTable.resizecols" title="Link permanente para esta definição">¶</a></dt>
+<dd>Ajusta largura das colunas da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainTable.update_selection">
+<tt class="descname">update_selection</tt><big>(</big><em>selected</em>, <em>deselected</em><big>)</big><a class="headerlink" href="#veliger.MainTable.update_selection" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Pega a entrada selecionada, extrai os valores envia para editor.</p>
+<p>Os valores são enviados através de um sinal.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.MainWindow">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">MainWindow</tt><a class="headerlink" href="#veliger.MainWindow" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Janela principal do programa.</p>
+<p>Inicia as instâncias dos outros componentes e aguarda interação do usuário.</p>
+<dl class="method">
+<dt id="veliger.MainWindow.cachetable">
+<tt class="descname">cachetable</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.cachetable" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Salva estado atual dos dados em arquivos externos.</p>
+<p>Cria backup dos conteúdos da tabela e da lista de imagens modificadas.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.changeStatus">
+<tt class="descname">changeStatus</tt><big>(</big><em>status</em>, <em>duration=2000</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.changeStatus" title="Link permanente para esta definição">¶</a></dt>
+<dd>Muda a mensagem de status da janela principal.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.charconverter">
+<tt class="descname">charconverter</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.charconverter" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Converte codificação de Latin-1 para UTF-8.</p>
+<p>Pega a seleção da lista de imagens modificadas e procura a linha
+correspondente na tabela principal. Se o item não for encontrado o item
+na lista é apagado.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.cleartable">
+<tt class="descname">cleartable</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.cleartable" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Remove todas as entradas da tabela.</p>
+<p>Antes de deletar checa se existem imagens não-salvas na lista.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.closeEvent">
+<tt class="descname">closeEvent</tt><big>(</big><em>event</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.closeEvent" title="Link permanente para esta definição">¶</a></dt>
+<dd>O que fazer quando o programa for fechado.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.commitmeta">
+<tt class="descname">commitmeta</tt><big>(</big><em>entries</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.commitmeta" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Grava os metadados modificados na imagem.</p>
+<p>Pega lista de imagens modificadas, procura entrada na tabela principal
+e retorna os metadados. Chama função que gravará estes metadados na
+imagem. Chama função que emitirá o sinal avisando a gravação foi
+completada com sucesso.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.copydata">
+<tt class="descname">copydata</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.copydata" title="Link permanente para esta definição">¶</a></dt>
+<dd>Copia metadados da entrada selecionada.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.createmeta">
+<tt class="descname">createmeta</tt><big>(</big><em>filepath</em>, <em>charset='utf-8'</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.createmeta" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Define as variáveis extraídas dos metadados (IPTC) da imagem.</p>
+<p>Usa a biblioteca do arquivo iptcinfo.py e retorna lista com valores.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.createthumbs">
+<tt class="descname">createthumbs</tt><big>(</big><em>filepath</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.createthumbs" title="Link permanente para esta definição">¶</a></dt>
+<dd>Cria thumbnails para as fotos novas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.delcurrent">
+<tt class="descname">delcurrent</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.delcurrent" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Deleta a(s) entrada(s) selecionada(s) da tabela.</p>
+<p>Verifica se a entrada a ser deletada está na lista de imagens
+modificadas. Se estiver, chama janela para o usuário decidir se quer
+apagar a entrada mesmo sem as modificações terem sido gravadas na
+imagem. Caso a resposta seja positiva a entrada será apagada e retirada
+da lista de imagens modificadas.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.exiftool">
+<tt class="descname">exiftool</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.exiftool" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Grava os metadados no arquivo.</p>
+<p>Usa subprocesso para chamar o exiftool, que gravará os metadados
+modificados na imagem.</p>
+<p>Função não utilizada, mas pode ser útil algum dia.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.imgfinder">
+<tt class="descname">imgfinder</tt><big>(</big><em>folder</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.imgfinder" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Busca recursivamente imagens na pasta selecionada.</p>
+<p>É possível definir as extensões a serem procuradas. Quando um arquivo é
+encontrado ele verifica se já está na tabela. Se não estiver, ele chama
+a função para extrair os metadados e insere uma nova entrada.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.matchfinder">
+<tt class="descname">matchfinder</tt><big>(</big><em>candidate</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.matchfinder" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Verifica se entrada já está na tabela.</p>
+<p>O candidato pode ser o nome do arquivo (string) ou a entrada
+selecionada da tabela (lista). Retorna uma lista com duplicatas ou
+lista vazia caso nenhuma seja encontrada.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.openabout_dialog">
+<tt class="descname">openabout_dialog</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.openabout_dialog" title="Link permanente para esta definição">¶</a></dt>
+<dd>Abre janela sobre o programa.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.opendir_dialog">
+<tt class="descname">opendir_dialog</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.opendir_dialog" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Abre janela para selecionar uma pasta.</p>
+<p>Chama a função para varrer a pasta selecionada.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.openfile_dialog">
+<tt class="descname">openfile_dialog</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.openfile_dialog" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Abre janela para escolher arquivos.</p>
+<p>Para selecionar arquivo(s) terminados em .jpg.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.openmanual_dialog">
+<tt class="descname">openmanual_dialog</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.openmanual_dialog" title="Link permanente para esta definição">¶</a></dt>
+<dd>Abre janela do manual de instruções.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.openpref_dialog">
+<tt class="descname">openpref_dialog</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.openpref_dialog" title="Link permanente para esta definição">¶</a></dt>
+<dd>Abre janela de opções.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.pastedata">
+<tt class="descname">pastedata</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.pastedata" title="Link permanente para esta definição">¶</a></dt>
+<dd>Cola metadados na(s) entrada(s) selecionada(s).</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.readsettings">
+<tt class="descname">readsettings</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.readsettings" title="Link permanente para esta definição">¶</a></dt>
+<dd>Lê o estado anterior do aplicativo durante a inicialização.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.setselection">
+<tt class="descname">setselection</tt><big>(</big><em>filename</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.setselection" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Sincroniza seleção entre lista e tabela principal.</p>
+<p>Pega a seleção da lista de imagens modificadas e procura a linha
+correspondente na tabela principal. Se o item não for encontrado o item
+na lista é apagado.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.writemeta">
+<tt class="descname">writemeta</tt><big>(</big><em>values</em><big>)</big><a class="headerlink" href="#veliger.MainWindow.writemeta" title="Link permanente para esta definição">¶</a></dt>
+<dd>Grava os metadados no arquivo.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.MainWindow.writesettings">
+<tt class="descname">writesettings</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.MainWindow.writesettings" title="Link permanente para esta definição">¶</a></dt>
+<dd>Salva estado atual do aplicativo.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.ManualDialog">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">ManualDialog</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.ManualDialog" title="Link permanente para esta definição">¶</a></dt>
+<dd>Janela do manual de instruções.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.PrefsDialog">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">PrefsDialog</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.PrefsDialog" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Janela de preferências.</p>
+<dl class="method">
+<dt id="veliger.PrefsDialog.emitrebuild">
+<tt class="descname">emitrebuild</tt><big>(</big><big>)</big><a class="headerlink" href="#veliger.PrefsDialog.emitrebuild" title="Link permanente para esta definição">¶</a></dt>
+<dd>Emite sinal com modelos atualizados e ordenados.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.PrefsGerais">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">PrefsGerais</tt><a class="headerlink" href="#veliger.PrefsGerais" title="Link permanente para esta definição">¶</a></dt>
+<dd>Opções gerais do programa.</dd></dl>
+
+<dl class="class">
+<dt id="veliger.TableModel">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">TableModel</tt><big>(</big><em>parent</em>, <em>mydata</em>, <em>header</em>, <em>*args</em><big>)</big><a class="headerlink" href="#veliger.TableModel" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Modelo dos dados.</p>
+<dl class="method">
+<dt id="veliger.TableModel.columnCount">
+<tt class="descname">columnCount</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.TableModel.columnCount" title="Link permanente para esta definição">¶</a></dt>
+<dd>Conta as colunas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.data">
+<tt class="descname">data</tt><big>(</big><em>index</em>, <em>role</em><big>)</big><a class="headerlink" href="#veliger.TableModel.data" title="Link permanente para esta definição">¶</a></dt>
+<dd>Transforma dados brutos em elementos da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.flags">
+<tt class="descname">flags</tt><big>(</big><em>index</em><big>)</big><a class="headerlink" href="#veliger.TableModel.flags" title="Link permanente para esta definição">¶</a></dt>
+<dd>Indicadores do estado de cada ítem.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.headerData">
+<tt class="descname">headerData</tt><big>(</big><em>col</em>, <em>orientation</em>, <em>role</em><big>)</big><a class="headerlink" href="#veliger.TableModel.headerData" title="Link permanente para esta definição">¶</a></dt>
+<dd>Constrói cabeçalho da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.insert_rows">
+<tt class="descname">insert_rows</tt><big>(</big><em>position</em>, <em>rows</em>, <em>parent</em>, <em>entry</em><big>)</big><a class="headerlink" href="#veliger.TableModel.insert_rows" title="Link permanente para esta definição">¶</a></dt>
+<dd>Insere entrada na tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.remove_rows">
+<tt class="descname">remove_rows</tt><big>(</big><em>position</em>, <em>rows</em>, <em>parent</em><big>)</big><a class="headerlink" href="#veliger.TableModel.remove_rows" title="Link permanente para esta definição">¶</a></dt>
+<dd>Remove entrada da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.rowCount">
+<tt class="descname">rowCount</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#veliger.TableModel.rowCount" title="Link permanente para esta definição">¶</a></dt>
+<dd>Conta as linhas.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.setData">
+<tt class="descname">setData</tt><big>(</big><em>index</em>, <em>value</em>, <em>role</em><big>)</big><a class="headerlink" href="#veliger.TableModel.setData" title="Link permanente para esta definição">¶</a></dt>
+<dd>Salva alterações nos dados a partir da edição da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.setcolor">
+<tt class="descname">setcolor</tt><big>(</big><em>index</em>, <em>role</em><big>)</big><a class="headerlink" href="#veliger.TableModel.setcolor" title="Link permanente para esta definição">¶</a></dt>
+<dd>Pinta células da tabela.</dd></dl>
+
+<dl class="method">
+<dt id="veliger.TableModel.sort">
+<tt class="descname">sort</tt><big>(</big><em>col</em>, <em>order</em><big>)</big><a class="headerlink" href="#veliger.TableModel.sort" title="Link permanente para esta definição">¶</a></dt>
+<dd>Ordena entradas a partir de valores de determinada coluna</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="veliger.TagCompleter">
+<em class="property">class </em><tt class="descclassname">veliger.</tt><tt class="descname">TagCompleter</tt><big>(</big><em>model</em>, <em>parent</em><big>)</big><a class="headerlink" href="#veliger.TagCompleter" title="Link permanente para esta definição">¶</a></dt>
+<dd><p>Completador de marcadores.</p>
+<p>Adaptado de John Schember:
+john.nachtimwald.com/2009/07/04/qcompleter-and-comma-separated-tags/</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Tópico anterior</h4>
+            <p class="topless"><a href="index.html"
+                                  title="capítulo anterior">Documentação do editor de metadados VÉLIGER</a></p>
+            <h3>Esta Página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/fullapi.txt"
+                     rel="nofollow">Exibir Fonte</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Pesquisa rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice Geral"
+             >índice</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Índice Global de Módulos"
+             >módulos</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Documentação do editor de metadados VÉLIGER"
+             >anterior</a> |</li>
+        <li><a href="index.html">VELIGER - Editor de metadados v0.6.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Bruno C. Vellutini.
+      Criado com <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

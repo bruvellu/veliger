@@ -1,0 +1,323 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Documentação do editor de metadados VÉLIGER &mdash; VELIGER - Editor de metadados v0.6.0b documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '0.6.0b',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/translations.js"></script>
+    <link rel="top" title="VELIGER - Editor de metadados v0.6.0b documentation" href="#" />
+    <link rel="next" title="Descrição das classes e funções do VÉLIGER" href="fullapi.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice Geral"
+             accesskey="I">índice</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Índice Global de Módulos"
+             accesskey="M">módulos</a> |</li>
+        <li class="right" >
+          <a href="fullapi.html" title="Descrição das classes e funções do VÉLIGER"
+             accesskey="N">próximo</a> |</li>
+        <li><a href="#">VELIGER - Editor de metadados v0.6.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="documentacao-do-editor-de-metadados-veliger">
+<h1>Documentação do editor de metadados VÉLIGER<a class="headerlink" href="#documentacao-do-editor-de-metadados-veliger" title="Link permanente para este título">¶</a></h1>
+<p>VÉLIGER é o editor de metadados do banco de imagens do Centro de Biologia
+Marinha da Universidade de São Paulo (CEBIMar-USP).</p>
+<p>Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
+interface para editar estas informações. Os campos foram adaptados para o
+propósito do banco, que é divulgar imagens relacionadas com biologia marinha.</p>
+<p>Os campos editáveis são:</p>
+<dl class="docutils">
+<dt>IPTC</dt>
+<dd>título, legenda, marcadores, táxon, espécie, especialista, autor, direitos,
+tamanho, local, cidade, estado e país.</dd>
+<dt>EXIF</dt>
+<dd>Geolocalização.</dd>
+</dl>
+<div class="section" id="guia-rapido">
+<h2>Guia rápido<a class="headerlink" href="#guia-rapido" title="Link permanente para este título">¶</a></h2>
+<p>Instale o programa seguindo estas instruções (link) e inicie-o.</p>
+<p>Ao importar imagens o programa irá ler os metadados de cada uma e criar as
+respectivas entradas na tabela principal. Selecione uma linha da tabela para
+visualizar o thumbnail e os metadados contidos na imagem.</p>
+<p>Para editar clique 2x na célula da tabela ou clique e aperte F2; após digitar
+aperte <em>Enter</em> e o valor estará salvo no programa (mas ainda não foi gravado na
+imagem).</p>
+<p>Outra maneira de editar é usando os campos de edição. Após selecionar uma
+entrada na tabela os campos de edição serão preenchidos com os metadados da
+imagem. Para editar simplesmente escreva as informações nos campos desejados e
+aperte <strong>ctrl+s</strong> <a class="footnote-reference" href="#id3" id="id1">[1]</a> antes de mudar para outra imagem. Caso você mude a linha
+selecionada antes de salvar as alterações serão perdidas.</p>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Lembre-se que salvar com ctrl+s, ou editando direto na tabela, não
+grava as alterações no arquivo da imagem. Os novos metadados ficam salvos
+apenas no programa, mas de maneira persistente (não é perdido após
+reiniciá-lo).</p>
+</div>
+<p>Após a alteração dos metadados a entrada é adicionada à uma lista que mostra os
+arquivos cujos metadados foram modificados, mas ainda não foram gravados no
+arquivo (ou seja, o arquivo ainda está com os metadados originais). Para gravar
+os metadados na imagem utilize o atalho <strong>ctrl+shift+s</strong> <a class="footnote-reference" href="#id4" id="id2">[2]</a>. Se tudo correr
+bem na gravação os novos metadados estarão embebidos na imagem.</p>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">A codificação utilizada para gravar os metadados é UTF-8. Veja mais
+informações sobre a codificação dos metadados abaixo.</p>
+</div>
+<p>Para editar vários valores de uma coluna, selecione a célula de uma entrada e
+arraste até outra entrada na mesma coluna (ou clique e segure <strong>shift</strong> ou
+<strong>ctrl</strong> para selecionar outras); com as entradas selecionadas aperte F2 e ele
+vai abrir o campinho de edição na tabela; escreva e aperte <em>Enter</em> e os valores
+serão copiados para as entradas selecionadas (apenas para a coluna escolhida).</p>
+<p>Para alterar todos os metadados de várias entradas de uma vez selecione as
+entradas que serão modificadas e preencha os campos de edição. Ao apertar
+<strong>ctrl+s</strong> todas as entradas selecionadas terão seus metadados
+sobrescritos pelo que você tiver inserido nos campos de edição.</p>
+<p>Também é possível copiar os metadados de uma entrada e colá-los em outra(s).
+Para tal, basta selecionar uma entrada e apertar <strong>ctrl+c</strong> para copiar,
+selecionar as entradas cujos metadados serão sobrescritos e apertar <strong>ctrl+v</strong>.</p>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Lembre-se que ao salvar os metadados (<strong>ctrl+s</strong>) todos os metadados das
+entradas selecionadas serão <strong>sobrescritos</strong>, mesmo você tendo modificado
+apenas um dos campos (a legenda, por exemplo). O mesmo ocorrerá ao colar os
+metadados copiados de uma entrada em outras usando <strong>ctrl+c</strong>/<strong>ctrl+v</strong>. O
+resultado destas duas funções são entradas cujos metadados são idênticos.</p>
+</div>
+<p>Ao fechar o programa ele lembra a tabela e suas modificações, portanto pode
+fechar sem apertar <strong>Ctrl+Shift+S</strong> que as modificações continuaram presentes
+quando programa for aberto novamente.</p>
+<table class="docutils footnote" frame="void" id="id3" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>ou use o ícone para salvar no menu de ferramentas.</td></tr>
+</tbody>
+</table>
+<table class="docutils footnote" frame="void" id="id4" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id2">[2]</a></td><td>ou clique em gravar na doca de modificadas.</td></tr>
+</tbody>
+</table>
+<div class="section" id="geolocalizacao">
+<h3>Geolocalização<a class="headerlink" href="#geolocalizacao" title="Link permanente para este título">¶</a></h3>
+<p>Ao clicar numa entrada, se a doca da geolocalização estiver aberta, o mapa e as
+coordenadas gravadas na imagem serão carregadas. Para mudar a localização da
+imagem simplesmente arraste o marcador no mapa até a nova posição, aperte
+o botão <strong>Atualizar</strong> para carregar a nova localização no editor e aperte
+<strong>Gravar</strong> para salvar as alterações na imagem.</p>
+<p>Se múltiplas imagens estiverem selecionadas, a geolocalização será gravada em
+todas.</p>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">É necessário apertar <strong>Atualizar</strong> após arrastar. As novas coordenadas não
+são atualizadas automaticamente (ainda).</p>
+</div>
+<p>Imagens sem coordenadas gravadas no EXIF mostrarão um mapa sem marcador. Para
+selecionar um local clique com o <strong>botão direito</strong> do mouse no mapa <a class="footnote-reference" href="#id6" id="id5">[3]</a>. O zoom
+será aumentado para que você possa refinar a posição arrastando o marcador.
+Lembre-se de atualizar antes de gravar.</p>
+<div class="admonition note">
+<p class="first admonition-title">Nota</p>
+<p class="last">Existe um bug no API do Google Maps ou no WebKit que faz com que o marcador
+seja colocado na posição errada. Isso ocorre quando o usuário arrasta o
+mapa ou aumenta o zoom, mudando a posição central inicial, antes de criar o
+marcador. Por este motivo, ao criar um novo marcador tente clicar na região
+desejada primeiro para evitar contratempos. Após criá-lo não haverá problemas
+para arrastar até a posição específica.</p>
+</div>
+<table class="docutils footnote" frame="void" id="id6" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[3]</a></td><td>clicar diversas vezes irá criar diversos marcadores, mas apenas o último
+criado ou arrastado que terá suas coordenadas lidas.</td></tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="conversao-da-codificacao">
+<h3>Conversão da codificação<a class="headerlink" href="#conversao-da-codificacao" title="Link permanente para este título">¶</a></h3>
+<p>Se você observar erros na codificação de caracteres especiais (ç, à, á, ã, ê)
+dos metadados após importar imagens, o programa que inseriu estes dados deve
+ter utilizado o padrão Latin-1 (ISO 8859-1). Para corrigir a codificação para o
+padrão preferido atualmente, o UTF-8, utilize a função de conversão no menu
+Editar. Essa alteração é gravada na imagem, logo, tenha backup sempre, pois se
+você voltar a editar esta imagem com outro programa pode ser que ele não
+reconheça o UTF-8 corretamente (acho difícil, mas pode acontecer).</p>
+</div>
+<div class="section" id="docas">
+<h3>Docas<a class="headerlink" href="#docas" title="Link permanente para este título">¶</a></h3>
+<p>A janela principal do <strong>VÉLIGER</strong> contém 4 docas: editor dos metadados, editor
+da geolocalização, miniatura da imagem e lista de entradas modificadas. Estas docas
+tem um posicionamento padrão, mas podem ser modificados pelo usuário; são arrastáveis,
+móveis e destacáveis.</p>
+</div>
+</div>
+<div class="section" id="atalhos-de-teclado">
+<h2>Atalhos de teclado<a class="headerlink" href="#atalhos-de-teclado" title="Link permanente para este título">¶</a></h2>
+<p>Principais atalhos de teclado disponíveis:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="17%" />
+<col width="83%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Atalho</th>
+<th class="head">Função</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>ctrl+o</td>
+<td>Importar arquivo(s) .jpg</td>
+</tr>
+<tr><td>ctrl+d</td>
+<td>Importar recursivamente todo o conteúdo de uma pasta</td>
+</tr>
+<tr><td>ctrl+c</td>
+<td>Copiar metadados da entrada selecionada</td>
+</tr>
+<tr><td>ctrl+v</td>
+<td>Colar metadados na(s) entrada(s) selecionada(s)</td>
+</tr>
+<tr><td>ctrl+s</td>
+<td>Salvar os metadados nos campos de edição para a tabela</td>
+</tr>
+<tr><td>ctrl+shift+s</td>
+<td>Gravar os metadados alterados nas respectivas imagens</td>
+</tr>
+<tr><td>alt+[a-z]</td>
+<td>Focar o cursor nos menus ou campos de edição
+(e.g., alt+p colocará o cursor no campo <strong>País</strong>)</td>
+</tr>
+<tr><td>shift+e</td>
+<td>Mostrar/esconder a doca com campos de edição</td>
+</tr>
+<tr><td>shift+g</td>
+<td>Mostrar/esconder a doca com geolocalização</td>
+</tr>
+<tr><td>shift+t</td>
+<td>Mostrar/esconder a doca com miniatura da imagem</td>
+</tr>
+<tr><td>shift+u</td>
+<td>Mostrar/esconder a doca com lista de entradas modificadas</td>
+</tr>
+<tr><td>ctrl+q</td>
+<td>Sair do programa</td>
+</tr>
+</tbody>
+</table>
+<p>Algumas funções mais drásticas como limpar a tabela principal e converter a
+codificação dos caracteres não tem atalhos para evitar acidentes.</p>
+</div>
+<div class="section" id="topicos">
+<h2>Tópicos<a class="headerlink" href="#topicos" title="Link permanente para este título">¶</a></h2>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="fullapi.html">API completa</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-e-tabelas">
+<h1>Índices e tabelas<a class="headerlink" href="#indices-e-tabelas" title="Link permanente para este título">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="#">Tabela de Conteúdo</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Documentação do editor de metadados VÉLIGER</a><ul>
+<li><a class="reference external" href="#guia-rapido">Guia rápido</a><ul>
+<li><a class="reference external" href="#geolocalizacao">Geolocalização</a></li>
+<li><a class="reference external" href="#conversao-da-codificacao">Conversão da codificação</a></li>
+<li><a class="reference external" href="#docas">Docas</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#atalhos-de-teclado">Atalhos de teclado</a></li>
+<li><a class="reference external" href="#topicos">Tópicos</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference external" href="#indices-e-tabelas">Índices e tabelas</a></li>
+</ul>
+
+            <h4>Próximo tópico</h4>
+            <p class="topless"><a href="fullapi.html"
+                                  title="próximo capítulo">Descrição das classes e funções do VÉLIGER</a></p>
+            <h3>Esta Página</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Exibir Fonte</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Pesquisa rápida</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Ir" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navegação</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="Índice Geral"
+             >índice</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Índice Global de Módulos"
+             >módulos</a> |</li>
+        <li class="right" >
+          <a href="fullapi.html" title="Descrição das classes e funções do VÉLIGER"
+             >próximo</a> |</li>
+        <li><a href="#">VELIGER - Editor de metadados v0.6.0b documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Bruno C. Vellutini.
+      Criado com <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

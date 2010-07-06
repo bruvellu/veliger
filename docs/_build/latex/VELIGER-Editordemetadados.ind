@@ -1,0 +1,160 @@
+\begin{theindex}
+\def\bigletter#1{{\Large\sffamily#1}\nopagebreak\vspace{1mm}}
+
+  \bigletter A
+  \item AboutDialog (classe em veliger), \hyperpage{7}
+  \item autolistgen() (m\IeC {\'e}todo veliger.DockEditor), \hyperpage{7}
+  \item AutoModels (classe em veliger), \hyperpage{7}
+
+  \indexspace
+  \bigletter B
+  \item buildview() (m\IeC {\'e}todo veliger.EditCompletion), \hyperpage{9}
+
+  \indexspace
+  \bigletter C
+  \item cachetable() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item changecurrent() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item changeStatus() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item charconverter() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item clearlist() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item cleartable() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item closeEvent() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item columnCount() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item commitmeta() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{10}
+  \item CompleterLineEdit (classe em veliger), \hyperpage{7}
+  \item copydata() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item createmeta() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item createthumbs() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+
+  \indexspace
+  \bigletter D
+  \item data() (m\IeC {\'e}todo veliger.ListModel), \hyperpage{9}
+  \item data() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item delcurrent() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item delentry() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item DockEditor (classe em veliger), \hyperpage{7}
+  \item DockGeo (classe em veliger), \hyperpage{7}
+  \item DockThumb (classe em veliger), \hyperpage{8}
+  \item DockUnsaved (classe em veliger), \hyperpage{8}
+
+  \indexspace
+  \bigletter E
+  \item EditCompletion (classe em veliger), \hyperpage{9}
+  \item editmultiple() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item emitlost() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item emitrebuild() (m\IeC {\'e}todo veliger.PrefsDialog), \hyperpage{12}
+  \item emitsaved() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item exiftool() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+
+  \indexspace
+  \bigletter F
+  \item flags() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item FlushFile (classe em veliger), \hyperpage{9}
+
+  \indexspace
+  \bigletter G
+  \item geodict() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{7}
+  \item get\_decimal() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item get\_exif() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+
+  \indexspace
+  \bigletter H
+  \item headerData() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+
+  \indexspace
+  \bigletter I
+  \item imgfinder() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item InitPs (classe em veliger), \hyperpage{9}
+  \item insert\_rows() (m\IeC {\'e}todo veliger.ListModel), \hyperpage{9}
+  \item insert\_rows() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item insertentry() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item insertrow() (m\IeC {\'e}todo veliger.EditCompletion), \hyperpage{9}
+
+  \indexspace
+  \bigletter L
+  \item ListModel (classe em veliger), \hyperpage{9}
+  \item load\_geocode() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+
+  \indexspace
+  \bigletter M
+  \item MainCompleter (classe em veliger), \hyperpage{10}
+  \item MainTable (classe em veliger), \hyperpage{10}
+  \item MainWindow (classe em veliger), \hyperpage{10}
+  \item ManualDialog (classe em veliger), \hyperpage{12}
+  \item matchfinder() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item matchfinder() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+
+  \indexspace
+  \bigletter N
+  \item newgps() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+
+  \indexspace
+  \bigletter O
+  \item openabout\_dialog() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item opendir\_dialog() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item openfile\_dialog() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item openmanual\_dialog() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item openpref\_dialog() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item outputrows() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+
+  \indexspace
+  \bigletter P
+  \item pastedata() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item pixmapcache() (m\IeC {\'e}todo veliger.DockThumb), \hyperpage{8}
+  \item populate() (m\IeC {\'e}todo veliger.EditCompletion), \hyperpage{9}
+  \item PrefsDialog (classe em veliger), \hyperpage{12}
+  \item PrefsGerais (classe em veliger), \hyperpage{12}
+
+  \indexspace
+  \bigletter R
+  \item readsettings() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item remove\_rows() (m\IeC {\'e}todo veliger.ListModel), \hyperpage{9}
+  \item remove\_rows() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item removerow() (m\IeC {\'e}todo veliger.EditCompletion), \hyperpage{9}
+  \item resizecols() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item resizeEvent() (m\IeC {\'e}todo veliger.DockThumb), \hyperpage{8}
+  \item resizeEvent() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item resolve() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item rowCount() (m\IeC {\'e}todo veliger.ListModel), \hyperpage{9}
+  \item rowCount() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+
+  \indexspace
+  \bigletter S
+  \item savedata() (m\IeC {\'e}todo veliger.DockEditor), \hyperpage{7}
+  \item setcolor() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item setcurrent() (m\IeC {\'e}todo veliger.DockEditor), \hyperpage{7}
+  \item setcurrent() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item setcurrent() (m\IeC {\'e}todo veliger.DockThumb), \hyperpage{8}
+  \item setData() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item setdms() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item setselection() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{11}
+  \item setsingle() (m\IeC {\'e}todo veliger.DockEditor), \hyperpage{7}
+  \item sort() (m\IeC {\'e}todo veliger.TableModel), \hyperpage{12}
+  \item state() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item sync\_setselection() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+
+  \indexspace
+  \bigletter T
+  \item TableModel (classe em veliger), \hyperpage{12}
+  \item TagCompleter (classe em veliger), \hyperpage{12}
+
+  \indexspace
+  \bigletter U
+  \item un\_decimal() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item update\_geo() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item update\_selection() (m\IeC {\'e}todo veliger.MainTable), \hyperpage{10}
+  \item updateThumb() (m\IeC {\'e}todo veliger.DockThumb), \hyperpage{8}
+
+  \indexspace
+  \bigletter V
+  \item veliger (m\IeC {\'o}dulo), \hyperpage{7}
+
+  \indexspace
+  \bigletter W
+  \item write\_geo() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item write\_html() (m\IeC {\'e}todo veliger.DockGeo), \hyperpage{8}
+  \item writemeta() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{12}
+  \item writeselected() (m\IeC {\'e}todo veliger.DockUnsaved), \hyperpage{9}
+  \item writesettings() (m\IeC {\'e}todo veliger.MainWindow), \hyperpage{12}
+
+\end{theindex}

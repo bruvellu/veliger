@@ -1,0 +1,17 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+    <file alias="conversor.png">icons/document-import.png</file>
+    <file alias="arquivo.png">icons/document-open.png</file>
+    <file alias="salvar.png">icons/document-save.png</file>
+    <file alias="gravar.png">icons/document-save-as.png</file>
+    <file alias="copiar.png">icons/edit-copy.png</file>
+    <file alias="colar.png">icons/edit-paste.png</file>
+    <file alias="options.png">icons/document-properties.png</file>
+    <file alias="deletar.png">icons/edit-delete.png</file>
+    <file alias="pasta.png">icons/folder-new.png</file>
+    <file alias="manual.png">icons/help-contents.png</file>
+    <file alias="sobre.png">icons/gtk-info.png</file>
+    <file alias="appicon.svg">icons/python.svg</file>
+    <file alias="desligar.png">icons/system-shutdown.png</file>
+</qresource>
+</RCC>
