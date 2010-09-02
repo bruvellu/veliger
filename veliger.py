@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 06 Jul 2010 05:46PM
+# Atualizado: 02 Sep 2010 04:55PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -27,6 +27,7 @@ import time
 import re
 import pickle
 
+# Versão 0.2.2
 import pyexiv2
 
 from PIL import Image
@@ -295,6 +296,12 @@ class MainWindow(QMainWindow):
             values = self.dockEditor.values
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
+        #XXX Tentativa de copiar e colar geolocalização junto.
+        # Talvez seja melhor implementar de outro jeito.
+        #print 'Geo:'
+        #print self.dockGeo.gps
+        #if self.dockGeo.gps:
+        #    self.copied_gps = self.dockGeo.gps
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).'''
@@ -1352,6 +1359,7 @@ class TableModel(QAbstractTableModel):
         '''Salva alterações nos dados a partir da edição da tabela.'''
         if index.isValid() and role == Qt.EditRole:
             oldvalue = self.mydata[index.row()][index.column()]
+            # Manter lower case na coluna dos marcadores
             if index.column() == 3:
                 self.mydata[index.row()][index.column()] = unicode(
                         value.toString()).lower()
@@ -1369,13 +1377,6 @@ class TableModel(QAbstractTableModel):
         if order == Qt.DescendingOrder:
             self.mydata.reverse()
         self.emit(SIGNAL('layoutChanged()'))
-
-    def setcolor(self, index, role):
-        '''Pinta células da tabela.'''
-        #FIXME Não funciona.
-        print index, role
-        if index.isValid() and role == Qt.BackgroundRole:
-            return QVariant(QColor(Qt.yellow))
 
     def insert_rows(self, position, rows, parent, entry):
         '''Insere entrada na tabela.'''
@@ -1975,7 +1976,7 @@ class DockGeo(QWidget):
         ''' % (unset, lat, long, zoom))
 
     def load_geocode(self, gps):
-        '''Pega coordenadas e chama mapa com as variáveis correspondetes.'''
+        '''Pega coordenadas e chama mapa com as variáveis correspondentes.'''
         if gps:
             # Cria valores decimais das coordenadas
             self.lat_dec = self.get_decimal(

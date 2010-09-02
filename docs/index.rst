@@ -72,6 +72,12 @@ Também é possível copiar os metadados de uma entrada e colá-los em outra(s).
 Para tal, basta selecionar uma entrada e apertar **ctrl+c** para copiar,
 selecionar as entradas cujos metadados serão sobrescritos e apertar **ctrl+v**.
 
+..note::
+    Ao copiar e colar a geolocalização não é copiada junto. Para tal é
+    necessário abrir a aba da geolocalização, selecionar as imagens
+    que serão alteradas, selecionar por último a imagem com as coordenadas
+    corretas e clicar em gravar.
+
 .. note::
     Lembre-se que ao salvar os metadados (**ctrl+s**) todos os metadados das
     entradas selecionadas serão **sobrescritos**, mesmo você tendo modificado
