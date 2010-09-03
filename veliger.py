@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 03 Sep 2010 10:26AM
+# Atualizado: 03 Sep 2010 12:18PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -296,12 +296,6 @@ class MainWindow(QMainWindow):
             values = self.dockEditor.values
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
-        #XXX Tentativa de copiar e colar geolocalização junto.
-        # Talvez seja melhor implementar de outro jeito.
-        #print 'Geo:'
-        #print self.dockGeo.gps
-        #if self.dockGeo.gps:
-        #    self.copied_gps = self.dockGeo.gps
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).'''
@@ -767,7 +761,8 @@ class MainWindow(QMainWindow):
         source = info.data['source']                        # 115
 
         # Extraindo GPS
-        gps = self.dockGeo.get_exif(filepath)
+        exif = self.dockGeo.get_exif(filepath)
+        gps = self.dockGeo.get_gps(exif)
         if gps:
             gps_str = self.dockGeo.gps_string(gps)
             latitude = gps_str['lat']
@@ -775,9 +770,14 @@ class MainWindow(QMainWindow):
         else:
             latitude, longitude = '', ''
 
+        # Extraindo data de criação da foto
+        datedate = self.dockGeo.get_date(exif)
+        creation_date = datedate.strftime('%d/%m/%Y %H:%M:%S')
+
         # Criando timestamp
         timestamp = time.strftime('%d/%m/%Y %H:%M:%S',
                 time.localtime(os.path.getmtime(filepath)))
+
         # Cria a lista para tabela da interface
         entrymeta = [
                 filepath,
@@ -796,6 +796,7 @@ class MainWindow(QMainWindow):
                 country,
                 latitude,
                 longitude,
+                creation_date,
                 timestamp,
                 ]
         if entrymeta[3] != '':
@@ -1237,6 +1238,7 @@ class MainTable(QTableView):
         self.setSelectionBehavior(self.SelectRows)
         self.setSortingEnabled(True)
         self.hideColumn(0)
+        self.hideColumn(17)
         self.selecteditems = []
 
         # Para limpar entrada dumb na inicialização
@@ -2044,6 +2046,10 @@ class DockGeo(QWidget):
         '''Extrai o exif da imagem selecionada usando o pyexiv2 0.2.2.'''
         exif_meta = pyexiv2.ImageMetadata(unicode(filepath))
         exif_meta.read()
+        return exif_meta
+    
+    def get_gps(self, exif_meta):
+        '''Extrai gps do exif.'''
         gps = {}
         try:
             gps['latref'] = exif_meta['Exif.GPSInfo.GPSLatitudeRef'].value
@@ -2057,6 +2063,20 @@ class DockGeo(QWidget):
             return gps
         except:
             return gps
+
+    def get_date(self, exif):
+        '''Extrai a data em que foi criada a foto do EXIF.'''
+        try:
+            date = exif['Exif.Photo.DateTimeOriginal']
+        except:
+            try:
+                date = exif['Exif.Photo.DateTimeDigitized']
+            except:
+                try:
+                    date = exif['Exif.Image.DateTime']
+                except:
+                    return False
+        return date.value
 
     def resolve(self, frac):
         '''Resolve a fração das coordenadas para int.
@@ -2233,23 +2253,42 @@ class DockThumb(QWidget):
         QWidget.__init__(self)
 
         self.setMaximumWidth(400)
+        # Layout do dock
         self.vbox = QVBoxLayout()
+
+        # Thumb
         self.pic = QPixmap()
         self.thumb = QLabel()
-        self.name = QLabel()
+
+        # Informações do arquivo
+        self.filename_label = QLabel(u'Arquivo:')
+        self.filename = QLabel()
+        self.timestamp_label = QLabel(u'Timestamp:')
         self.timestamp = QLabel()
+        self.creation_date_label = QLabel(u'Data de criação:')
+        self.creation_date = QLineEdit()
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(400)
         self.thumb.setMinimumSize(100, 100)
         self.thumb.setAlignment(Qt.AlignHCenter)
 
+        # Layout do Editor
+        self.infobox = QFormLayout()
+        self.infobox.addRow(self.filename_label, self.filename)
+        self.infobox.addRow(self.timestamp_label, self.timestamp)
+        self.infobox.addRow(self.creation_date_label, self.creation_date)
+
+        # Widget das informações
+        self.fileinfo = QWidget()
+        self.fileinfo.setLayout(self.infobox)
+        
+        # Adicionando widgets ao dock
         self.vbox.addWidget(self.thumb)
-        self.vbox.addWidget(self.name)
-        self.vbox.addWidget(self.timestamp)
+        self.vbox.addWidget(self.fileinfo)
         self.vbox.addStretch(1)
 
-        self.name.setWordWrap(True)
+        self.filename.setWordWrap(True)
         self.setLayout(self.vbox)
 
         QPixmapCache.setCacheLimit(81920)
@@ -2287,21 +2326,25 @@ class DockThumb(QWidget):
         informações.
         '''
         if values and values[0][1] != '':
-            filename = os.path.basename(unicode(values[0][1]))
-            self.name.setText(unicode(filename))
-            timestamp = values[16][1]
+            file = os.path.basename(unicode(values[0][1]))
+            self.filename.setText(unicode(file))
+            creation_date = values[16][1]
+            self.creation_date.setText(creation_date)
+            timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
             # Tenta abrir o cache
             self.pic = self.pixmapcache(values[0][1])
         elif values and values[0][1] == '':
             self.pic = QPixmap()
-            self.name.clear()
+            self.filename.clear()
+            self.creation_date.clear()
             self.timestamp.clear()
             self.thumb.clear()
         else:
             self.pic = QPixmap()
-            self.name.clear()
+            self.filename.clear()
+            self.creation_date.clear()
             self.timestamp.clear()
             self.thumb.clear()
         self.updateThumb()
@@ -2533,7 +2576,8 @@ class InitPs():
                 u'País',        #13
                 u'Latitude',    #14
                 u'Longitude',   #15
-                u'Timestamp',   #16
+                u'Data',        #16
+                u'Timestamp',   #17
                 ]
         
         # Nome do arquivo Pickle para tabela
@@ -2547,7 +2591,7 @@ class InitPs():
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
-                    u'', u'',
+                    u'', u'', u'',
                     ])
         except:
             f = open(tablepickle, 'wb')
@@ -2556,7 +2600,7 @@ class InitPs():
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
-                u'', u'',
+                u'', u'', u'',
                 ],]
         # Nome do arquivo Pickle para lista
         listpickle = '.listcache'
