@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 02 Sep 2010 06:46PM
+# Atualizado: 02 Sep 2010 11:12PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -315,6 +315,8 @@ class MainWindow(QMainWindow):
         st = nrows
         
         # Título
+        #XXX Intenção era não deixar o usuário esperando... não funcionou.
+        # o programa fica inativo.
         self.changeStatus(u'Mudando o título de %d fotos para "%s"' % (nrows,
             self.copied[1]), 5000)
         for index in indexes[si:st]:
@@ -733,6 +735,7 @@ class MainWindow(QMainWindow):
         self.changeStatus(u'Lendo os metadados de %s e criando variáveis...' %
                 filename)
         # Criar objeto com metadados
+        # force=True permite editar imagem sem IPTC
         info = IPTCInfo(filepath, force=True, inp_charset=charset)
         # Checando se o arquivo tem dados IPTC
         if len(info.data) < 4:
