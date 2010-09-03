@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 03 Sep 2010 12:06AM
+# Atualizado: 03 Sep 2010 01:19AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -784,9 +784,9 @@ class MainWindow(QMainWindow):
                 city,
                 state,
                 country,
-                timestamp,
                 latitude,
                 longitude,
+                timestamp,
                 ]
         if entrymeta[3] != '':
             entrymeta[3] = entrymeta[3] + ', '
@@ -1227,18 +1227,11 @@ class MainTable(QTableView):
         self.setSelectionBehavior(self.SelectRows)
         self.setSortingEnabled(True)
         self.hideColumn(0)
-        self.hideColumn(14)
         self.selecteditems = []
 
         # Para limpar entrada dumb na inicialização
         if self.nrows == 1 and self.mydata[0][0] == '':
             self.model.remove_rows(0, 1, QModelIndex())
-
-        #TODO Função obsoleta, ver se tem algo para aproveitar.
-        #self.connect(
-        #        self.selectionModel,
-        #        SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
-        #        self.update_selection)
 
         self.connect(
                 self.selectionModel,
@@ -1303,7 +1296,7 @@ class MainTable(QTableView):
 
         Os valores são enviados através de um sinal.
         '''
-        #TODO Função obsoleta, ver se tem algo para aproveitar.
+        #TODO Função toda obsoleta, ver se tem algo para aproveitar.
         deselectedindexes = deselected.indexes()
         if not deselectedindexes:
             selectedindexes = selected.indexes()
@@ -1320,9 +1313,9 @@ class MainTable(QTableView):
         #self.emit(SIGNAL('thisIsCurrent(values)'), values)
 
     def changecurrent(self, current, previous):
-        '''Identifica a célula selecionada, extrai valores e envia para editor.
+        '''Identifica a célula selecionada, extrai valores e envia sinal.
 
-        Os valores são enviados através de um sinal.
+        Os valores são enviados pelo sinal.
         '''
         values = []
         for col in xrange(self.ncols):
@@ -2001,16 +1994,17 @@ class DockGeo(QWidget):
         </html>
         ''' % (unset, lat, long, zoom))
 
-    def load_geocode(self, gps):
-        '''Pega coordenadas e chama mapa com as variáveis correspondentes.'''
-        if gps:
+    def load_geocode(self, lat, long):
+        '''Pega string das coordenadas e chama mapa com as variáveis correspondentes.'''
+        if lat and long:
+            gps = self.string_gps(lat, long)
             # Cria valores decimais das coordenadas
             self.lat_dec = self.get_decimal(
-                    self.gps['latref'], self.gps['latdeg'],
-                    self.gps['latmin'], self.gps['latsec'])
+                    gps['latref'], gps['latdeg'],
+                    gps['latmin'], gps['latsec'])
             self.long_dec = self.get_decimal(
-                    self.gps['longref'], self.gps['longdeg'],
-                    self.gps['longmin'], self.gps['longsec'])
+                    gps['longref'], gps['longdeg'],
+                    gps['longmin'], gps['longsec'])
             self.write_html(lat=self.lat_dec, long=self.long_dec)
         else:
             # Imagem sem coordenadas
@@ -2046,24 +2040,39 @@ class DockGeo(QWidget):
 
     def setcurrent(self, values):
         '''Mostra geolocalização da imagem selecionada.'''
-        if values and values[0][1] != '':
-            self.current_filepath = values[0][1]
-            # Extrai metadados da imagem (exif).
-            self.gps = self.get_exif(self.current_filepath)
-            # Atualiza o editor com novos valores.
-            if self.gps:
-                self.setdms(self.gps)
-                self.savebutton.setEnabled(True)
-            else:
-                self.lat.clear()
-                self.long.clear()
-            # Se o dock estiver visível, carregar o mapa.
-            if self.ismap_selected:
-                self.load_geocode(self.gps)
-            else:
-                # Possivelmente isso não vai aparecer nunca por causa do
-                # self.state.
-                self.map.setHtml('''<html><head></head><body><h1>Recarregue</h1></body></html>''')
+        latitude = values[14][1]
+        longitude = values[15][1]
+        if latitude and longitude:
+            self.lat.setText(latitude)
+            self.long.setText(longitude)
+            self.savebutton.setEnabled(True)
+        else:
+            self.lat.clear()
+            self.long.clear()
+        # Se o dock estiver visível, carregar o mapa.
+        if self.ismap_selected:
+            self.load_geocode(latitude, longitude)
+        else:
+            # Possivelmente isso não vai aparecer nunca por causa do
+            # self.state.
+            self.map.setHtml('''<html><head></head><body><h1>Recarregue</h1></body></html>''')
+
+    def string_gps(self, latitude, longitude):
+        '''Converte string das coordenadas para dicionário.'''
+        lat = re.findall('\w+', latitude)
+        long = re.findall('\w+', longitude)
+        gps = {
+                'latref': lat[0],
+                'latdeg': int(lat[1]),
+                'latmin': int(lat[2]),
+                'latsec': int(lat[3]),
+                'longref': long[0],
+                'longdeg': int(long[1]),
+                'longmin': int(long[2]),
+                'longsec': int(long[3]),
+                }
+        return gps
+
 
     def get_decimal(self, ref, deg, min, sec):
         '''Descobre o valor decimal das coordenadas.'''
@@ -2223,7 +2232,7 @@ class DockThumb(QWidget):
         if values and values[0][1] != '':
             filename = os.path.basename(unicode(values[0][1]))
             self.name.setText(unicode(filename))
-            timestamp = values[14][1]
+            timestamp = values[16][1]
             self.timestamp.setText(timestamp)
 
             # Tenta abrir o cache
@@ -2451,10 +2460,23 @@ class InitPs():
         
         # Cabeçalho horizontal da tabela principal
         header = [
-                u'Arquivo', u'Título', u'Legenda', u'Marcadores',
-                u'Táxon', u'Espécie', u'Especialista', u'Autor', u'Direitos',
-                u'Tamanho', u'Local', u'Cidade', u'Estado', u'País',
-                u'Timestamp', u'Latitude', u'Longitude',
+                u'Arquivo',     #0
+                u'Título',      #1
+                u'Legenda',     #2
+                u'Marcadores',  #3
+                u'Táxon',       #4
+                u'Espécie',     #5
+                u'Especialista',#6
+                u'Autor',       #7
+                u'Direitos',    #8
+                u'Tamanho',     #9
+                u'Local',       #10
+                u'Cidade',      #11
+                u'Estado',      #12
+                u'País',        #13
+                u'Latitude',    #14
+                u'Longitude',   #15
+                u'Timestamp',   #16
                 ]
         
         # Nome do arquivo Pickle para tabela
