@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 02 Sep 2010 11:12PM
+# Atualizado: 02 Sep 2010 11:39PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -755,6 +755,9 @@ class MainWindow(QMainWindow):
         sp = info.data['original transmission reference']   # 103
         scale = info.data['special instructions']           # 40
         source = info.data['source']                        # 115
+
+        # Extraindo GPS
+        gps = self.dockGeo.get_exif(filepath)
 
         # Criando timestamp
         timestamp = time.strftime('%d/%m/%Y %H:%M:%S',
@@ -1844,12 +1847,22 @@ class DockGeo(QWidget):
         except:
             pass
 
+    def gps_string(self, gps):
+        '''Transforma coordenadas extraídas do exif em texto.'''
+        dms_str = {}
+        dms_str['lat'] = u'%s %d°%d\'%d"' % (
+                gps['latref'], gps['latdeg'],
+                gps['latmin'], gps['latsec'])
+        dms_str['long'] = u'%s %d°%d\'%d"' % (
+                gps['longref'], gps['longdeg'],
+                gps['longmin'], gps['longsec'])
+        return dms_str
+        
     def setdms(self, dms):
         '''Atualiza as coordenadas do editor.'''
-        self.lat.setText(u'%s %d°%d\'%d"' % (
-            dms['latref'], dms['latdeg'], dms['latmin'], dms['latsec']))
-        self.long.setText(u'%s %d°%d\'%d"' % (
-            dms['longref'], dms['longdeg'], dms['longmin'], dms['longsec']))
+        dms_str = self.gps_string(dms)
+        self.lat.setText(dms_str['lat'])
+        self.long.setText(dms_str['long'])
 
     def update_geo(self):
         '''Captura as coordenadas do marcador para atualizar o editor.'''
