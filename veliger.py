@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 03 Sep 2010 01:19AM
+# Atualizado: 03 Sep 2010 02:34AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -315,10 +315,6 @@ class MainWindow(QMainWindow):
         st = nrows
         
         # Título
-        #XXX Intenção era não deixar o usuário esperando... não funcionou.
-        # o programa fica inativo.
-        self.changeStatus(u'Mudando o título de %d fotos para "%s"' % (nrows,
-            self.copied[1]), 5000)
         for index in indexes[si:st]:
             mainWidget.model.setData(index, QVariant(self.copied[1]),
                     Qt.EditRole)
@@ -402,9 +398,23 @@ class MainWindow(QMainWindow):
         si = st
         st = si + nrows 
 
-        # Estado
+        # País
         for index in indexes[si:st]:
             mainWidget.model.setData(index, QVariant(self.copied[13]),
+                    Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Latitude
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index, QVariant(self.copied[14]),
+                    Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Longitude
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index, QVariant(self.copied[15]),
                     Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -1680,9 +1690,23 @@ class DockEditor(QWidget):
         si = st
         st = si + nrows 
 
-        # Estado
+        # País
         for index in indexes[si:st]:
             mainWidget.model.setData(index, QVariant(self.countryEdit.text()),
+                    Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Latitude
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index, QVariant(self.dockGeo.lat.text()),
+                    Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Longitude
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index, QVariant(self.dockGeo.long.text()),
                     Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -1823,6 +1847,12 @@ class DockGeo(QWidget):
                 mainWidget,
                 SIGNAL('thisIsCurrent(values)'),
                 self.setcurrent
+                )
+
+        self.connect(
+                mainWidget.model,
+                SIGNAL('dataChanged(index, value, oldvalue)'),
+                self.setsingle
                 )
 
         self.connect(
@@ -2038,6 +2068,15 @@ class DockGeo(QWidget):
         result = int(fraclist[0]) / int(fraclist[1])
         return result
 
+    def setsingle(self, index, value, oldvalue):
+        '''Atualiza campo de edição correspondente quando dado é alterado.'''
+        if index.column() == 14:
+            self.lat.setText(value.toString())
+        elif index.column() == 15:
+            self.long.setText(value.toString())
+        if self.ismap_selected:
+            self.load_geocode(self.lat.text(), self.long.text())
+
     def setcurrent(self, values):
         '''Mostra geolocalização da imagem selecionada.'''
         latitude = values[14][1]
@@ -2093,11 +2132,10 @@ class DockGeo(QWidget):
             # Pega o nome dos arquivos.
             for row in indexes:
                 index = mainWidget.model.index(row, 0, QModelIndex())
+                lat_index = mainWidget.model.index(row, 14, QModelIndex())
+                long_index = mainWidget.model.index(row, 15, QModelIndex())
                 filepath = mainWidget.model.data(index, Qt.DisplayRole)
-                filepaths.append(filepath.toString())
-            # Criar instância para poder gravar metadados.
-            for filepath in filepaths:
-                image = pyexiv2.ImageMetadata(unicode(filepath))
+                image = pyexiv2.ImageMetadata(unicode(filepath.toString()))
                 image.read()
                 newlat, newlong = self.newgps()
                 if newlat and newlong:
@@ -2113,6 +2151,13 @@ class DockGeo(QWidget):
                     self.changeStatus(
                             u'Gravando novas coordenadas de %s... pronto!'
                             % filepath, 5000)
+
+                    # Para atualizar tabela.
+                    mainWidget.model.setData(lat_index, QVariant(newlat),
+                        Qt.EditRole)
+                    mainWidget.model.setData(long_index, QVariant(newlong),
+                        Qt.EditRole)
+
                 else:
                     self.changeStatus(
                             u'Deletando o campo Exif.GPSInfo de %s...' %
@@ -2125,6 +2170,11 @@ class DockGeo(QWidget):
                     self.changeStatus(
                             u'Deletando o campo Exif.GPSInfo de %s... pronto!'
                             % filepath, 5000)
+                    mainWidget.model.setData(lat_index, QVariant(''),
+                        Qt.EditRole)
+                    mainWidget.model.setData(long_index, QVariant(''),
+                        Qt.EditRole)
+                mainWidget.setFocus(Qt.OtherFocusReason)
 
             #XXX Aqui o mapa é atualizado de acordo com as novas coordenadas.
             if newlat and newlong:
@@ -2141,9 +2191,9 @@ class DockGeo(QWidget):
                 self.long.clear()
                 self.write_html(unset=1, zoom=1)
 
-            self.changeStatus(u'%d imagens alteradas!' % len(filepaths), 5000)
+            self.changeStatus(u'%d imagens alteradas!' % len(indexes), 5000)
         else:
-            self.changeStatus(u'Nenhuma imagem selecionada!' % len(filepaths), 5000)
+            self.changeStatus(u'Nenhuma imagem selecionada!')
 
     def newgps(self):
         '''Pega as novas coordenadas do editor.'''
