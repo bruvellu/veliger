@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 02 Sep 2010 11:49PM
+# Atualizado: 03 Sep 2010 12:06AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -758,6 +758,12 @@ class MainWindow(QMainWindow):
 
         # Extraindo GPS
         gps = self.dockGeo.get_exif(filepath)
+        if gps:
+            gps_str = self.dockGeo.gps_string(gps)
+            latitude = gps_str['lat']
+            longitude = gps_str['long']
+        else:
+            latitude, longitude = '', ''
 
         # Criando timestamp
         timestamp = time.strftime('%d/%m/%Y %H:%M:%S',
@@ -779,6 +785,8 @@ class MainWindow(QMainWindow):
                 state,
                 country,
                 timestamp,
+                latitude,
+                longitude,
                 ]
         if entrymeta[3] != '':
             entrymeta[3] = entrymeta[3] + ', '
@@ -2446,7 +2454,7 @@ class InitPs():
                 u'Arquivo', u'Título', u'Legenda', u'Marcadores',
                 u'Táxon', u'Espécie', u'Especialista', u'Autor', u'Direitos',
                 u'Tamanho', u'Local', u'Cidade', u'Estado', u'País',
-                u'Timestamp'
+                u'Timestamp', u'Latitude', u'Longitude',
                 ]
         
         # Nome do arquivo Pickle para tabela
@@ -2460,6 +2468,7 @@ class InitPs():
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
+                    u'', u'',
                     ])
         except:
             f = open(tablepickle, 'wb')
@@ -2468,6 +2477,7 @@ class InitPs():
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
+                u'', u'',
                 ],]
         # Nome do arquivo Pickle para lista
         listpickle = '.listcache'
