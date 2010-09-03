@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 02 Sep 2010 11:39PM
+# Atualizado: 02 Sep 2010 11:49PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -1916,7 +1916,7 @@ class DockGeo(QWidget):
 
         return dms
 
-    def write_html(self, unset=0, lat=0.0, long=0.0, zoom=5):
+    def write_html(self, unset=0, lat=0.0, long=0.0, zoom=9):
         '''Carrega código HTML da QWebView com mapa do Google Maps.
 
         Usando o API V3.
