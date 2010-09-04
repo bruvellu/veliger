@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 04 Sep 2010 02:43AM
+# Atualizado: 04 Sep 2010 03:41AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
         # Data
         for index in indexes[si:st]:
             mainWidget.model.setData(index,
-                    QVariant(self.dockThumb.creation_date.text()),
+                    QVariant(self.dockThumb.initdate.text()),
                     Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -835,7 +835,7 @@ class MainWindow(QMainWindow):
 
         # Extraindo data de criação da foto
         datedate = self.dockGeo.get_date(exif)
-        creation_date = datedate.strftime('%Y:%m:%d %H:%M:%S')
+        initdate = datedate.strftime('%Y:%m:%d %H:%M:%S')
 
         # Criando timestamp
         timestamp = time.strftime('%Y:%m:%d %H:%M:%S',
@@ -859,7 +859,7 @@ class MainWindow(QMainWindow):
                 country,
                 latitude,
                 longitude,
-                creation_date,
+                initdate,
                 timestamp,
                 ]
         if entrymeta[3] != '':
@@ -1781,7 +1781,7 @@ class DockEditor(QWidget):
         # Data
         for index in indexes[si:st]:
             mainWidget.model.setData(index,
-                    QVariant(self.parent.dockThumb.creation_date.text()),
+                    QVariant(self.parent.dockThumb.initdate.text()),
                     Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -2232,6 +2232,8 @@ class DockThumb(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
+        self.parent = parent
+
         self.setMaximumWidth(300)
         # Layout do dock
         self.vbox = QVBoxLayout()
@@ -2245,8 +2247,8 @@ class DockThumb(QWidget):
         self.filename = QLabel()
         self.timestamp_label = QLabel(u'Timestamp:')
         self.timestamp = QLabel()
-        self.creation_date_label = QLabel(u'Data de criação:')
-        self.creation_date = QLineEdit()
+        self.initdate_label = QLabel(u'Data de criação:')
+        self.initdate = QLineEdit()
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(300)
@@ -2257,7 +2259,7 @@ class DockThumb(QWidget):
         self.infobox = QFormLayout()
         self.infobox.addRow(self.filename_label, self.filename)
         self.infobox.addRow(self.timestamp_label, self.timestamp)
-        self.infobox.addRow(self.creation_date_label, self.creation_date)
+        self.infobox.addRow(self.initdate_label, self.initdate)
 
         # Widget das informações
         self.fileinfo = QWidget()
@@ -2291,10 +2293,22 @@ class DockThumb(QWidget):
                 self.setsingle
                 )
 
+        self.connect(
+                self.initdate,
+                SIGNAL('editingFinished()'),
+                self.finish
+                )
+        
+    def finish(self):
+        indexes = mainWidget.selectedIndexes()
+        if indexes:
+            self.parent.dockEditor.savedata()
+            print 'Salvou...'
+
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
         if index.column() == 16:
-            self.creation_date.setText(value.toString())
+            self.initdate.setText(value.toString())
 
     def pixmapcache(self, filepath):
         '''Cria cache para thumbnail.'''
@@ -2319,8 +2333,8 @@ class DockThumb(QWidget):
         if values and values[0][1] != '':
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
-            creation_date = values[16][1]
-            self.creation_date.setText(creation_date)
+            initdate = values[16][1]
+            self.initdate.setText(initdate)
             timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
@@ -2329,13 +2343,13 @@ class DockThumb(QWidget):
         elif values and values[0][1] == '':
             self.pic = QPixmap()
             self.filename.clear()
-            self.creation_date.clear()
+            self.initdate.clear()
             self.timestamp.clear()
             self.thumb.clear()
         else:
             self.pic = QPixmap()
             self.filename.clear()
-            self.creation_date.clear()
+            self.initdate.clear()
             self.timestamp.clear()
             self.thumb.clear()
         self.updateThumb()
