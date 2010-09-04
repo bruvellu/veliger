@@ -6,7 +6,7 @@
 # 
 #TODO Inserir licença.
 #
-# Atualizado: 03 Sep 2010 12:18PM
+# Atualizado: 04 Sep 2010 02:43AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -75,11 +75,11 @@ class MainWindow(QMainWindow):
         self.tagcompleter.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.tagcompleter.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
         # Dock com thumbnail
-        self.dockThumb = DockThumb()
+        self.dockThumb = DockThumb(self)
         self.thumbDockWidget = QDockWidget(u'Thumbnail', self)
         self.thumbDockWidget.setWidget(self.dockThumb)
         # Dock com lista de updates
-        self.dockUnsaved = DockUnsaved()
+        self.dockUnsaved = DockUnsaved(self)
         self.unsavedDockWidget = QDockWidget(u'Modificadas', self)
         self.unsavedDockWidget.setWidget(self.dockUnsaved)
         # Dock com geolocalização
@@ -154,7 +154,7 @@ class MainWindow(QMainWindow):
         self.writeMeta.setShortcut('Ctrl+Shift+S')
         self.writeMeta.setStatusTip(u'Gravar metadados na imagem')
         self.connect(self.writeMeta, SIGNAL('triggered()'),
-                self.dockUnsaved.writeselected)
+                self.commitmeta)
         salvo = lambda: self.changeStatus(
                 u'Metadados gravados na(s) imagem(ns)')
         self.writeMeta.triggered.connect(salvo)
@@ -267,12 +267,6 @@ class MainWindow(QMainWindow):
                 self.istab_selected
                 )
         
-        self.connect(
-                self.dockUnsaved,
-                SIGNAL('commitMeta(entries)'),
-                self.commitmeta
-                )
-
         self.connect(
                 self.dockUnsaved,
                 SIGNAL('syncSelection(filename)'),
@@ -410,6 +404,14 @@ class MainWindow(QMainWindow):
         for index in indexes[si:st]:
             mainWidget.model.setData(index, QVariant(self.copied[15]),
                     Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Data
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index,
+                    QVariant(self.dockThumb.creation_date.text()),
+                    Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
@@ -492,7 +494,7 @@ class MainWindow(QMainWindow):
             self.changeStatus(u'%s não foi encontrada, importe-a novamente' %
                     filename, 10000)
 
-    def commitmeta(self, entries):
+    def commitmeta(self):
         '''Grava os metadados modificados na imagem.
         
         Pega lista de imagens modificadas, procura entrada na tabela principal
@@ -500,6 +502,7 @@ class MainWindow(QMainWindow):
         imagem. Chama função que emitirá o sinal avisando a gravação foi
         completada com sucesso.        
         '''
+        entries = self.dockUnsaved.mylist
         if entries:
             for entry in entries:
                 index = self.model.index(0, 0, QModelIndex())
@@ -571,6 +574,68 @@ class MainWindow(QMainWindow):
                         keyword.strip() != '']
                 info.data['keywords'] = list(set(keywords))         # keywords
             info.save()
+
+            # Exif
+            print 'Gravando EXIF...'
+            lat = values[14]
+            long = values[15]
+            image = self.dockGeo.get_exif(values[0])
+            if lat and long:
+                newgps = self.dockGeo.geodict(lat, long)
+                self.changeStatus(u'Gravando novas coordenadas de %s...' %
+                        values[0])
+                try:
+                    image['Exif.GPSInfo.GPSLatitudeRef'] = str(newgps['latref'])
+                    image['Exif.GPSInfo.GPSLatitude'] = (
+                            newgps['latdeg'], newgps['latmin'], newgps['latsec'])
+                    image['Exif.GPSInfo.GPSLongitudeRef'] = str(newgps['longref'])
+                    image['Exif.GPSInfo.GPSLongitude'] = (
+                            newgps['longdeg'], newgps['longmin'], newgps['longsec'])
+                    image.write()
+                    self.changeStatus(
+                            u'Gravando novas coordenadas de %s... pronto!'
+                            % values[0], 5000)
+                except:
+                    self.changeStatus(
+                            u'Gravando novas coordenadas de %s... ERRO OCORREU!'
+                            % values[0], 5000)
+            else:
+                try:
+                    self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
+                            values[0])
+                    image.__delitem__('Exif.GPSInfo.GPSLatitudeRef')
+                    image.__delitem__('Exif.GPSInfo.GPSLatitude')
+                    image.__delitem__('Exif.GPSInfo.GPSLongitudeRef')
+                    image.__delitem__('Exif.GPSInfo.GPSLongitude')
+                    image.write()
+                    self.changeStatus(
+                            u'Deletando o campo Exif.GPSInfo de %s... pronto!'
+                            % values[0], 5000)
+                except:
+                    self.changeStatus(
+                            u'Deletando o campo Exif.GPSInfo de %s... ERRO!'
+                            % values[0], 5000)
+
+            # Data da criação da imagem
+            if values[16]:
+                try:
+                    image['Exif.Photo.DateTimeOriginal'] = values[16]
+                    image['Exif.Photo.DateTimeDigitized'] = values[16]
+                    #print image['Exif.Image.DateTime']
+                    image.write()
+                except:
+                    print 'Erro na hora de gravar a data.'
+            else:
+                try:
+                    #TODO Decidir o que fazer aqui... deletar ou passar ''?
+                    print 'Deletando datas de origem...'
+                    #image.__delitem__('Exif.Photo.DateTimeOriginal')
+                    #image.__delitem__('Exif.Photo.DateTimeDigitized')
+                    #print image['Exif.Image.DateTime']
+                    image.write()
+                except:
+                    print 'Erro na hora de gravar a data.'
+
         except IOError:
             #FIXME Erro não está aparecendo...
             print '\nOcorreu algum erro. '
@@ -712,8 +777,6 @@ class MainWindow(QMainWindow):
                     matches = self.matchfinder(filename)
                     if len(matches) == 0:
                         filepath = os.path.join(root, filename)
-                        timestamp = time.strftime('%d/%m/%Y %I:%M:%S %p',
-                                time.localtime(os.path.getmtime(filepath)))                    
                         entrymeta = self.createmeta(filepath)
                         self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
                         n_new += 1
@@ -772,10 +835,10 @@ class MainWindow(QMainWindow):
 
         # Extraindo data de criação da foto
         datedate = self.dockGeo.get_date(exif)
-        creation_date = datedate.strftime('%d/%m/%Y %H:%M:%S')
+        creation_date = datedate.strftime('%Y:%m:%d %H:%M:%S')
 
         # Criando timestamp
-        timestamp = time.strftime('%d/%m/%Y %H:%M:%S',
+        timestamp = time.strftime('%Y:%m:%d %H:%M:%S',
                 time.localtime(os.path.getmtime(filepath)))
 
         # Cria a lista para tabela da interface
@@ -1440,6 +1503,8 @@ class DockEditor(QWidget):
                 '>100 mm'
                 ]
 
+        self.parent = parent
+
         self.changeStatus = parent.changeStatus
 
         self.tageditor = parent.tageditor
@@ -1701,14 +1766,22 @@ class DockEditor(QWidget):
 
         # Latitude
         for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.dockGeo.lat.text()),
+            mainWidget.model.setData(index, QVariant(self.parent.dockGeo.lat.text()),
                     Qt.EditRole)
         si = st
         st = si + nrows 
 
         # Longitude
         for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.dockGeo.long.text()),
+            mainWidget.model.setData(index, QVariant(self.parent.dockGeo.long.text()),
+                    Qt.EditRole)
+        si = st
+        st = si + nrows 
+
+        # Data
+        for index in indexes[si:st]:
+            mainWidget.model.setData(index,
+                    QVariant(self.parent.dockThumb.creation_date.text()),
                     Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -1810,14 +1883,12 @@ class DockGeo(QWidget):
         self.long_label = QLabel(u'Longitude:')
         self.long = QLineEdit()
         self.updatebutton = QPushButton(u'&Atualizar', self)
-        self.savebutton = QPushButton(u'&Gravar', self)
 
         # Layout do Editor
         self.editbox = QFormLayout()
         self.editbox.addRow(self.lat_label, self.lat)
         self.editbox.addRow(self.long_label, self.long)
         self.editbox.addRow(self.updatebutton)
-        self.editbox.addRow(self.savebutton)
 
         # Widgets do Dock
         self.geolocation = QWidget()
@@ -1832,12 +1903,6 @@ class DockGeo(QWidget):
         self.hbox.addWidget(self.geolocation)
         self.hbox.addWidget(self.map)
         self.setLayout(self.hbox)
-
-        self.connect(
-                self.savebutton,
-                SIGNAL('clicked()'),
-                self.write_geo
-                )
 
         self.connect(
                 self.updatebutton,
@@ -2104,7 +2169,6 @@ class DockGeo(QWidget):
         if latitude and longitude:
             self.lat.setText(latitude)
             self.long.setText(longitude)
-            self.savebutton.setEnabled(True)
         else:
             self.lat.clear()
             self.long.clear()
@@ -2142,90 +2206,6 @@ class DockGeo(QWidget):
             decimal = -decimal
         return decimal
 
-    def write_geo(self):
-        '''Grava novas coordenadas nas imagens selecionadas.'''
-        # Pega imagens selecionadas.
-        indexes = mainWidget.selectionModel.selectedRows()
-        if indexes:
-            filepaths = []
-            indexes = [index.row() for index in indexes]
-            # Pega o nome dos arquivos.
-            for row in indexes:
-                index = mainWidget.model.index(row, 0, QModelIndex())
-                lat_index = mainWidget.model.index(row, 14, QModelIndex())
-                long_index = mainWidget.model.index(row, 15, QModelIndex())
-                filepath = mainWidget.model.data(index, Qt.DisplayRole)
-                image = pyexiv2.ImageMetadata(unicode(filepath.toString()))
-                image.read()
-                newgps = self.newgps()
-                if newgps:
-                    self.changeStatus(u'Gravando novas coordenadas de %s...' %
-                            filepath.toString())
-                    image['Exif.GPSInfo.GPSLatitudeRef'] = str(newgps['latref'])
-                    image['Exif.GPSInfo.GPSLatitude'] = (
-                            newgps['latdeg'], newgps['latmin'], newgps['latsec'])
-                    image['Exif.GPSInfo.GPSLongitudeRef'] = str(newgps['longref'])
-                    image['Exif.GPSInfo.GPSLongitude'] = (
-                            newgps['longdeg'], newgps['longmin'], newgps['longsec'])
-                    image.write()
-                    self.changeStatus(
-                            u'Gravando novas coordenadas de %s... pronto!'
-                            % filepath.toString(), 5000)
-
-                    # Para atualizar tabela.
-                    mainWidget.model.setData(lat_index,
-                            QVariant(self.lat.text()), Qt.EditRole)
-                    mainWidget.model.setData(long_index,
-                            QVariant(self.long.text()), Qt.EditRole)
-
-                else:
-                    self.changeStatus(
-                            u'Deletando o campo Exif.GPSInfo de %s...' %
-                            filepath)
-                    image.__delitem__('Exif.GPSInfo.GPSLatitudeRef')
-                    image.__delitem__('Exif.GPSInfo.GPSLatitude')
-                    image.__delitem__('Exif.GPSInfo.GPSLongitudeRef')
-                    image.__delitem__('Exif.GPSInfo.GPSLongitude')
-                    image.write()
-                    self.changeStatus(
-                            u'Deletando o campo Exif.GPSInfo de %s... pronto!'
-                            % filepath, 5000)
-                    mainWidget.model.setData(lat_index, QVariant(''),
-                        Qt.EditRole)
-                    mainWidget.model.setData(long_index, QVariant(''),
-                        Qt.EditRole)
-                mainWidget.setFocus(Qt.OtherFocusReason)
-
-            #XXX Aqui o mapa é atualizado de acordo com as novas coordenadas.
-            #if newlat and newlong:
-            #    lat_dec = self.get_decimal(
-            #            newlat['ref'], self.resolve(newlat['deg']),
-            #            self.resolve(newlat['min']), self.resolve(newlat['sec']))
-            #    long_dec = self.get_decimal(
-            #            newlat['ref'], self.resolve(newlong['deg']),
-            #            self.resolve(newlong['min']), self.resolve(newlong['sec']))
-
-            #    self.write_html(lat=lat_dec, long=long_dec)
-            #else:
-            #    self.lat.clear()
-            #    self.long.clear()
-            #    self.write_html(unset=1, zoom=1)
-
-            #self.changeStatus(u'%d imagens alteradas!' % len(indexes), 5000)
-        else:
-            self.changeStatus(u'Nenhuma imagem selecionada!')
-
-    def newgps(self):
-        '''Pega as novas coordenadas do editor.'''
-        lat = self.lat.text()
-        long = self.long.text()
-        # Se um dos campos estiver vazio, deletar geolocalização.
-        if not lat or not long:
-            newgps = {}
-        else:
-            newgps = self.geodict(lat, long)
-        return newgps
-
     def geodict(self, latitude, longitude):
         '''Extrai coordenadas da string do editor.
         
@@ -2249,10 +2229,10 @@ class DockGeo(QWidget):
 
 class DockThumb(QWidget):
     '''Dock para mostrar o thumbnail da imagem selecionada.'''
-    def __init__(self):
-        QWidget.__init__(self)
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
 
-        self.setMaximumWidth(400)
+        self.setMaximumWidth(300)
         # Layout do dock
         self.vbox = QVBoxLayout()
 
@@ -2269,7 +2249,7 @@ class DockThumb(QWidget):
         self.creation_date = QLineEdit()
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.thumb.setMaximumWidth(400)
+        self.thumb.setMaximumWidth(300)
         self.thumb.setMinimumSize(100, 100)
         self.thumb.setAlignment(Qt.AlignHCenter)
 
@@ -2304,6 +2284,17 @@ class DockThumb(QWidget):
                 SIGNAL('visibleRow(filepath)'),
                 self.pixmapcache
                 )
+
+        self.connect(
+                mainWidget.model,
+                SIGNAL('dataChanged(index, value, oldvalue)'),
+                self.setsingle
+                )
+
+    def setsingle(self, index, value, oldvalue):
+        '''Atualiza campo de edição correspondente quando dado é alterado.'''
+        if index.column() == 16:
+            self.creation_date.setText(value.toString())
 
     def pixmapcache(self, filepath):
         '''Cria cache para thumbnail.'''
@@ -2373,8 +2364,8 @@ class DockUnsaved(QWidget):
     adicionada à lista. Seleção na lista seleciona entrada na tabela. Gravar
     salva metadados de cada ítem da lista nas respectivas imagens.
     '''
-    def __init__(self):
-        QWidget.__init__(self)
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
 
         self.mylist = updatelist
         self.model = ListModel(self, self.mylist)
@@ -2414,7 +2405,7 @@ class DockUnsaved(QWidget):
         self.connect(
                 self.savebutton,
                 SIGNAL('clicked()'),
-                self.writeselected
+                parent.commitmeta
                 )
 
         self.connect(
@@ -2437,10 +2428,6 @@ class DockUnsaved(QWidget):
             filename = self.model.data(index, Qt.DisplayRole)
             filename = filename.toString()
             self.emit(SIGNAL('syncSelection(filename)'), filename)
-
-    def writeselected(self):
-        '''Emite sinal para gravar metadados na imagem.'''
-        self.emit(SIGNAL('commitMeta(entries)'), self.mylist)
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
