@@ -4,9 +4,9 @@
 # VÉLIGER
 # Copyleft 2010 - Bruno C. Vellutini | organelas.com
 # 
-#TODO Inserir licença.
+#TODO Definir licença.
 #
-# Atualizado: 04 Sep 2010 03:41AM
+# Atualizado: 06 Sep 2010 05:15AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
