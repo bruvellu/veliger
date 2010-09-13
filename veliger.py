@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 06 Sep 2010 05:15AM
+# Atualizado: 13 Sep 2010 12:36PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -2293,17 +2293,17 @@ class DockThumb(QWidget):
                 self.setsingle
                 )
 
-        self.connect(
-                self.initdate,
-                SIGNAL('editingFinished()'),
-                self.finish
-                )
-        
-    def finish(self):
-        indexes = mainWidget.selectedIndexes()
-        if indexes:
-            self.parent.dockEditor.savedata()
-            print 'Salvou...'
+        #        self.connect(
+        #                self.initdate,
+        #                SIGNAL('editingFinished()'),
+        #                self.finish
+        #                )
+        #        
+        #    def finish(self):
+        #        indexes = mainWidget.selectedIndexes()
+        #        if indexes:
+        #            self.parent.dockEditor.savedata()
+        #            print 'Salvou...'
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
