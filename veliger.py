@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 02:51PM
+# Atualizado: 13 Sep 2010 05:41PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -261,6 +261,10 @@ class MainWindow(QMainWindow):
                 QTabWidget.North)
         #self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
 
+        # Lê opções do programa
+        self.readsettings()
+
+        # Conexões
         self.connect(
                 self.geoDockWidget,
                 SIGNAL('visibilityChanged(bool)'),
@@ -279,7 +283,8 @@ class MainWindow(QMainWindow):
         self.connect(self.tagcompleter, SIGNAL('activated(QString)'),
                 self.tageditor.complete_text)
 
-        self.readsettings()
+        # Live update
+
 
     def istab_selected(self, visible):
         self.emit(SIGNAL('ismapSelected(visible)'), visible)
@@ -2316,28 +2321,28 @@ class DockThumb(QWidget):
 
     def runtimer(self, text):
         '''Inicia o timer.'''
-        print text
-        print 'Timer começou!'
         self.timer.start(800)
         
-    def finish(self):
+    def finish(self, holdfocus=False):
         '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
         # Parar o timer evita q o cursor volte para o campo
-        self.timer.stop()
-        indexes = mainWidget.selectedIndexes()
-        if indexes:
-            self.parent.dockEditor.savedata()
-            print 'Salvou...'
+        if self.timer.isActive():
+            self.timer.stop()
+        # Usa estado padrão para ver se foi modificado
+        if self.initdate.isModified():
+            #TODO Compara texto pra ver se mudou...
+            indexes = mainWidget.selectedIndexes()
+            if indexes:
+                self.parent.dockEditor.savedata()
+                print 'Salvou...'
+        if holdfocus:
+            cursor = self.initdate.cursorPosition()
+            self.initdate.setFocus()
+            self.initdate.setCursorPosition(cursor)
 
     def finishfocus(self):
         '''Se o timer apitar, salvar e manter o cursor no campo.'''
-        cursor = self.initdate.cursorPosition()
-        indexes = mainWidget.selectedIndexes()
-        if indexes:
-            self.parent.dockEditor.savedata()
-            print 'Salvou...'
-        self.initdate.setFocus()
-        self.initdate.setCursorPosition(cursor)
+        self.finish(holdfocus=True)
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
