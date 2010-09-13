@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 05:50PM
+# Atualizado: 13 Sep 2010 08:14PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -318,8 +318,7 @@ class MainWindow(QMainWindow):
         # Usa estado padrão para ver se foi modificado
         if self.dockThumb.initdate.isModified():
             #TODO Compara texto pra ver se mudou...
-            indexes = mainWidget.selectedIndexes()
-            if indexes:
+            if mainWidget.selectedIndexes():
                 self.dockEditor.savedata()
                 print 'Salvou...'
         if holdfocus:
@@ -344,21 +343,28 @@ class MainWindow(QMainWindow):
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).'''
         indexes = mainWidget.selectedIndexes()
+        print indexes
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
+        print rows
 
         # Slices dos índices selecionados.
         nrows = len(rows)
+        print nrows
         si = 0
         st = nrows
         
+        print si, st
         # Título
         for index in indexes[si:st]:
+            print 'Index:'
+            print index.row(), index.column()
             mainWidget.model.setData(index, QVariant(self.copied[1]),
                     Qt.EditRole)
         si = st
         st = si + nrows 
 
+        print si, st
         # Legenda
         for index in indexes[si:st]:
             mainWidget.model.setData(index, QVariant(self.copied[2]),
@@ -1341,7 +1347,7 @@ class MainTable(QTableView):
         hh = self.horizontalHeader()
         hh.setStretchLastSection(True)
 
-        self.cols_resized = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+        self.cols_resized = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
         for col in self.cols_resized:
             self.resizeColumnToContents(col)
         self.setColumnWidth(1, 250)
@@ -1710,129 +1716,77 @@ class DockEditor(QWidget):
 
     def savedata(self):
         '''Salva valores dos campos para a tabela.'''
-        #TODO Fundir com a função paste...
+        #TODO Fundir com a função pastedata...
         indexes = mainWidget.selectedIndexes()
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
-
-        # Slices dos índices selecionados.
         nrows = len(rows)
-        si = 0
-        st = nrows
-        
-        # Título
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.titleEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Legenda
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index,
-                    QVariant(self.captionEdit.toPlainText()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Marcadores
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index,
+        for index in indexes:
+            # Título
+            if index.column() == 1:
+                mainWidget.model.setData(index,
+                    QVariant(self.titleEdit.text()), Qt.EditRole)
+            # Legenda
+            elif index.column() == 2:
+                mainWidget.model.setData(index,
+                    QVariant(self.captionEdit.toPlainText()), Qt.EditRole)
+            # Marcadores
+            elif index.column() == 3:
+                mainWidget.model.setData(index,
                     QVariant(unicode(self.tagsEdit.text()).lower()),
                     Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Táxon
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.taxonEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Espécie
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.spEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Especialista
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.sourceEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Autor
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.authorEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Direitos
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.rightsEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Tamanho
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index,
-                    QVariant(self.sizeEdit.currentText()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Local
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.locationEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Cidade
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.cityEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Estado
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.stateEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # País
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.countryEdit.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Latitude
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.parent.dockGeo.lat.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Longitude
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index, QVariant(self.parent.dockGeo.long.text()),
-                    Qt.EditRole)
-        si = st
-        st = si + nrows 
-
-        # Data
-        for index in indexes[si:st]:
-            mainWidget.model.setData(index,
-                    QVariant(self.parent.dockThumb.initdate.text()),
-                    Qt.EditRole)
+            # Táxon
+            elif index.column() == 4:
+                mainWidget.model.setData(index,
+                        QVariant(self.taxonEdit.text()), Qt.EditRole)
+            # Espécie
+            elif index.column() == 5:
+                mainWidget.model.setData(index,
+                        QVariant(self.spEdit.text()), Qt.EditRole)
+            # Especialista
+            elif index.column() == 6:
+                mainWidget.model.setData(index,
+                        QVariant(self.sourceEdit.text()), Qt.EditRole)
+            # Autor
+            elif index.column() == 7:
+                mainWidget.model.setData(index,
+                        QVariant(self.authorEdit.text()), Qt.EditRole)
+            # Direitos
+            elif index.column() == 8:
+                mainWidget.model.setData(index,
+                        QVariant(self.rightsEdit.text()), Qt.EditRole)
+            # Tamanho
+            elif index.column() == 9:
+                mainWidget.model.setData(index,
+                    QVariant(self.sizeEdit.currentText()), Qt.EditRole)
+            # Local
+            elif index.column() == 10:
+                mainWidget.model.setData(index,
+                        QVariant(self.locationEdit.text()), Qt.EditRole)
+            # Cidade
+            elif index.column() == 11:
+                mainWidget.model.setData(index,
+                        QVariant(self.cityEdit.text()), Qt.EditRole)
+            # Estado
+            elif index.column() == 12:
+                mainWidget.model.setData(index,
+                        QVariant(self.stateEdit.text()), Qt.EditRole)
+            # País
+            elif index.column() == 13:
+                mainWidget.model.setData(index,
+                        QVariant(self.countryEdit.text()), Qt.EditRole)
+            # Latitude
+            elif index.column() == 14:
+                mainWidget.model.setData(index,
+                        QVariant(self.parent.dockGeo.lat.text()), Qt.EditRole)
+            # Longitude
+            elif index.column() == 15:
+                mainWidget.model.setData(index,
+                        QVariant(self.parent.dockGeo.long.text()), Qt.EditRole)
+            # Data
+            elif index.column() == 16:
+                mainWidget.model.setData(index,
+                    QVariant(self.parent.dockThumb.initdate.text()), Qt.EditRole)
 
         mainWidget.setFocus(Qt.OtherFocusReason)
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
