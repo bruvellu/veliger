@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 12:45PM
+# Atualizado: 13 Sep 2010 02:51PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -2235,6 +2235,9 @@ class DockThumb(QWidget):
         self.parent = parent
 
         self.setMaximumWidth(300)
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
+
         # Layout do dock
         self.vbox = QVBoxLayout()
 
@@ -2294,16 +2297,47 @@ class DockThumb(QWidget):
                 )
 
         self.connect(
+                self.timer,
+                SIGNAL('timeout()'),
+                self.finishfocus
+                )
+
+        self.connect(
+                self.initdate,
+                SIGNAL('textEdited(QString)'),
+                self.runtimer
+                )
+
+        self.connect(
                 self.initdate,
                 SIGNAL('editingFinished()'),
                 self.finish
                 )
+
+    def runtimer(self, text):
+        '''Inicia o timer.'''
+        print text
+        print 'Timer começou!'
+        self.timer.start(800)
         
     def finish(self):
+        '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
+        # Parar o timer evita q o cursor volte para o campo
+        self.timer.stop()
         indexes = mainWidget.selectedIndexes()
         if indexes:
             self.parent.dockEditor.savedata()
             print 'Salvou...'
+
+    def finishfocus(self):
+        '''Se o timer apitar, salvar e manter o cursor no campo.'''
+        cursor = self.initdate.cursorPosition()
+        indexes = mainWidget.selectedIndexes()
+        if indexes:
+            self.parent.dockEditor.savedata()
+            print 'Salvou...'
+        self.initdate.setFocus()
+        self.initdate.setCursorPosition(cursor)
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
