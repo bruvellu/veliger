@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 05:41PM
+# Atualizado: 13 Sep 2010 05:50PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -94,6 +94,10 @@ class MainWindow(QMainWindow):
                 Qt.BottomDockWidgetArea
                 )
         self.editorDockWidget.setWidget(self.dockEditor)
+
+        # Timer
+        self.timer = QTimer(self)
+        self.timer.setSingleShot(True)
 
         # Atribuições da MainWindow
         self.setCentralWidget(mainWidget)
@@ -284,7 +288,48 @@ class MainWindow(QMainWindow):
                 self.tageditor.complete_text)
 
         # Live update
+        self.connect(
+                self.timer,
+                SIGNAL('timeout()'),
+                self.finishfocus
+                )
 
+        self.connect(
+                self.dockThumb.initdate,
+                SIGNAL('textEdited(QString)'),
+                self.runtimer
+                )
+
+        self.connect(
+                self.dockThumb.initdate,
+                SIGNAL('editingFinished()'),
+                self.finish
+                )
+
+    def runtimer(self, text):
+        '''Inicia o timer.'''
+        self.timer.start(800)
+        
+    def finish(self, holdfocus=False):
+        '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
+        # Parar o timer evita q o cursor volte para o campo
+        if self.timer.isActive():
+            self.timer.stop()
+        # Usa estado padrão para ver se foi modificado
+        if self.dockThumb.initdate.isModified():
+            #TODO Compara texto pra ver se mudou...
+            indexes = mainWidget.selectedIndexes()
+            if indexes:
+                self.dockEditor.savedata()
+                print 'Salvou...'
+        if holdfocus:
+            cursor = self.dockThumb.initdate.cursorPosition()
+            self.dockThumb.initdate.setFocus()
+            self.dockThumb.initdate.setCursorPosition(cursor)
+
+    def finishfocus(self):
+        '''Se o timer apitar, salvar e manter o cursor no campo.'''
+        self.finish(holdfocus=True)
 
     def istab_selected(self, visible):
         self.emit(SIGNAL('ismapSelected(visible)'), visible)
@@ -2240,8 +2285,6 @@ class DockThumb(QWidget):
         self.parent = parent
 
         self.setMaximumWidth(300)
-        self.timer = QTimer(self)
-        self.timer.setSingleShot(True)
 
         # Layout do dock
         self.vbox = QVBoxLayout()
@@ -2300,49 +2343,6 @@ class DockThumb(QWidget):
                 SIGNAL('dataChanged(index, value, oldvalue)'),
                 self.setsingle
                 )
-
-        self.connect(
-                self.timer,
-                SIGNAL('timeout()'),
-                self.finishfocus
-                )
-
-        self.connect(
-                self.initdate,
-                SIGNAL('textEdited(QString)'),
-                self.runtimer
-                )
-
-        self.connect(
-                self.initdate,
-                SIGNAL('editingFinished()'),
-                self.finish
-                )
-
-    def runtimer(self, text):
-        '''Inicia o timer.'''
-        self.timer.start(800)
-        
-    def finish(self, holdfocus=False):
-        '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
-        # Parar o timer evita q o cursor volte para o campo
-        if self.timer.isActive():
-            self.timer.stop()
-        # Usa estado padrão para ver se foi modificado
-        if self.initdate.isModified():
-            #TODO Compara texto pra ver se mudou...
-            indexes = mainWidget.selectedIndexes()
-            if indexes:
-                self.parent.dockEditor.savedata()
-                print 'Salvou...'
-        if holdfocus:
-            cursor = self.initdate.cursorPosition()
-            self.initdate.setFocus()
-            self.initdate.setCursorPosition(cursor)
-
-    def finishfocus(self):
-        '''Se o timer apitar, salvar e manter o cursor no campo.'''
-        self.finish(holdfocus=True)
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
