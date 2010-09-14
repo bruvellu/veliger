@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 09:18PM
+# Atualizado: 13 Sep 2010 09:23PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -210,6 +210,12 @@ class MainWindow(QMainWindow):
         self.toggleUnsaved.setShortcut('Shift+U')
         self.toggleUnsaved.setStatusTip(u'Esconde ou mostra o dock com modificadas')
 
+        # Tabela
+        self.clearselection = QAction('Limpar seleção', self)
+        self.clearselection.setShortcut('Esc')
+        self.clearselection.triggered.connect(self.clear)
+        self.addAction(self.clearselection)
+
         # Menu
         self.arquivo = self.menubar.addMenu('&Arquivo')
         self.arquivo.addAction(self.openFile)
@@ -331,6 +337,11 @@ class MainWindow(QMainWindow):
     def finishfocus(self):
         '''Se o timer apitar, salvar e manter o cursor no campo.'''
         self.finish(holdfocus=True)
+
+    def clear(self):
+        '''Limpa seleção das tabelas.'''
+        self.dockUnsaved.view.selectionModel.clearSelection()
+        mainWidget.selectionModel.clearSelection()
 
     def istab_selected(self, visible):
         self.emit(SIGNAL('ismapSelected(visible)'), visible)
@@ -2387,12 +2398,6 @@ class DockUnsaved(QWidget):
         self.view.setModel(self.model)
         self.view.selectionModel = self.view.selectionModel()
         self.view.setAlternatingRowColors(True)
-
-        self.clearselection = QAction('Limpar seleção', self)
-        self.clearselection.setShortcut('Esc')
-        self.clear = lambda: self.view.selectionModel.clearSelection()
-        self.clearselection.triggered.connect(self.clear)
-        self.addAction(self.clearselection)
 
         self.savebutton = QPushButton(u'&Gravar', self)
         if not self.model.mylist:
