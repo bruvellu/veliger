@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 08:14PM
+# Atualizado: 13 Sep 2010 09:18PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -315,6 +315,9 @@ class MainWindow(QMainWindow):
         # Parar o timer evita q o cursor volte para o campo
         if self.timer.isActive():
             self.timer.stop()
+        # Guarda posição do cursor
+        if holdfocus:
+            cursor = self.dockThumb.initdate.cursorPosition()
         # Usa estado padrão para ver se foi modificado
         if self.dockThumb.initdate.isModified():
             #TODO Compara texto pra ver se mudou...
@@ -322,7 +325,6 @@ class MainWindow(QMainWindow):
                 self.dockEditor.savedata()
                 print 'Salvou...'
         if holdfocus:
-            cursor = self.dockThumb.initdate.cursorPosition()
             self.dockThumb.initdate.setFocus()
             self.dockThumb.initdate.setCursorPosition(cursor)
 
@@ -1788,7 +1790,11 @@ class DockEditor(QWidget):
                 mainWidget.model.setData(index,
                     QVariant(self.parent.dockThumb.initdate.text()), Qt.EditRole)
 
+        # Gambiarra para atualizar os valores da tabela
         mainWidget.setFocus(Qt.OtherFocusReason)
+        # Mantém selecionado o que estava selecionado
+        for index in indexes:
+            mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
 
