@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 13 Sep 2010 09:23PM
+# Atualizado: 14 Sep 2010 06:28PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -99,6 +99,9 @@ class MainWindow(QMainWindow):
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
 
+        # Live editing
+        self.live_edit = None
+
         # Atribuições da MainWindow
         self.setCentralWidget(mainWidget)
         self.setWindowTitle(u'VÉLIGER - Editor de Metadados')
@@ -149,7 +152,7 @@ class MainWindow(QMainWindow):
         self.saveFile.setShortcut('Ctrl+S')
         self.saveFile.setStatusTip(u'Salvar metadados')
         self.connect(self.saveFile, SIGNAL('triggered()'),
-                self.dockEditor.savedata)
+                self.savedata)
         #salvo = lambda: self.changeStatus(u'Alterações salvas!')
         #self.saveFile.triggered.connect(salvo)
 
@@ -295,15 +298,15 @@ class MainWindow(QMainWindow):
 
         # Live update
         self.connect(
-                self.timer,
-                SIGNAL('timeout()'),
-                self.finishfocus
-                )
-
-        self.connect(
                 self.dockThumb.initdate,
                 SIGNAL('textEdited(QString)'),
                 self.runtimer
+                )
+
+        self.connect(
+                self.timer,
+                SIGNAL('timeout()'),
+                self.finish
                 )
 
         self.connect(
@@ -312,31 +315,79 @@ class MainWindow(QMainWindow):
                 self.finish
                 )
 
-    def runtimer(self, text):
+    def whoislive(self, sender):
+        '''Identifica quem está sendo editado.'''
+        #TODO Guardar objeto e coluna(?)
+        if sender == u'Título':
+            self.live_edit = 1
+        elif sender == u'Legenda':
+            self.live_edit = 2
+        elif sender == u'Marcadores':
+            self.live_edit = 3
+        elif sender == u'Táxon':
+            self.live_edit = 4
+        elif sender == u'Espécie':
+            self.live_edit = 5
+        elif sender == u'Especialista':
+            self.live_edit = 6
+        elif sender == u'Autor':
+            self.live_edit = 7
+        elif sender == u'Direitos':
+            self.live_edit = 8
+        elif sender == u'Tamanho':
+            self.live_edit = 9
+        elif sender == u'Local':
+            self.live_edit = 10
+        elif sender == u'Cidade':
+            self.live_edit = 11
+        elif sender == u'Estado':
+            self.live_edit = 12
+        elif sender == u'País':
+            self.live_edit = 13
+        elif sender == u'Latitude':
+            self.live_edit = 14
+        elif sender == u'Longitude':
+            self.live_edit = 15
+        elif sender == u'Data':
+            self.live_edit = 16
+
+    def runtimer(self):
         '''Inicia o timer.'''
+        print 'Rodou!'
+        print 'LIVE: %d' % self.live_edit
+        self.whoislive(self.sender().objectName())
         self.timer.start(800)
+
+    def finishfocus(self):
+        '''Se o timer apitar, salvar e manter o cursor no campo.'''
+        self.finish(holdfocus=True)
         
     def finish(self, holdfocus=False):
         '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
+        self.whoislive(self.sender().objectName())
         # Parar o timer evita q o cursor volte para o campo
         if self.timer.isActive():
             self.timer.stop()
         # Guarda posição do cursor
         if holdfocus:
-            cursor = self.dockThumb.initdate.cursorPosition()
+            #FIXME Puxando o qtimer...
+            cursor = self.sender().cursorPosition()
+            print 'Capturou cursor.'
         # Usa estado padrão para ver se foi modificado
         if self.dockThumb.initdate.isModified():
+            print 'LIVE: %d' % self.live_edit
             #TODO Compara texto pra ver se mudou...
             if mainWidget.selectedIndexes():
-                self.dockEditor.savedata()
+                self.savedata()
                 print 'Salvou...'
         if holdfocus:
-            self.dockThumb.initdate.setFocus()
-            self.dockThumb.initdate.setCursorPosition(cursor)
-
-    def finishfocus(self):
-        '''Se o timer apitar, salvar e manter o cursor no campo.'''
-        self.finish(holdfocus=True)
+            try:
+                self.sender().setFocus()
+                print 'Pos foco'
+                self.sender().setCursorPosition(cursor)
+                print 'Voltou cursor'
+            except:
+                pass
 
     def clear(self):
         '''Limpa seleção das tabelas.'''
@@ -352,6 +403,87 @@ class MainWindow(QMainWindow):
             values = self.dockEditor.values
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
+
+    def savedata(self):
+        '''Salva valores dos campos para a tabela.'''
+        #TODO Fundir com a função pastedata...
+        indexes = mainWidget.selectedIndexes()
+        rows = [index.row() for index in indexes]
+        rows = list(set(rows))
+        nrows = len(rows)
+        for index in indexes:
+            # Título
+            if index.column() == 1:
+                mainWidget.model.setData(index,
+                    QVariant(self.dockEditor.titleEdit.text()), Qt.EditRole)
+            # Legenda
+            elif index.column() == 2:
+                mainWidget.model.setData(index,
+                    QVariant(self.dockEditor.captionEdit.toPlainText()), Qt.EditRole)
+            # Marcadores
+            elif index.column() == 3:
+                mainWidget.model.setData(index,
+                    QVariant(unicode(self.dockEditor.tagsEdit.text()).lower()),
+                    Qt.EditRole)
+            # Táxon
+            elif index.column() == 4:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.taxonEdit.text()), Qt.EditRole)
+            # Espécie
+            elif index.column() == 5:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.spEdit.text()), Qt.EditRole)
+            # Especialista
+            elif index.column() == 6:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.sourceEdit.text()), Qt.EditRole)
+            # Autor
+            elif index.column() == 7:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.authorEdit.text()), Qt.EditRole)
+            # Direitos
+            elif index.column() == 8:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.rightsEdit.text()), Qt.EditRole)
+            # Tamanho
+            elif index.column() == 9:
+                mainWidget.model.setData(index,
+                    QVariant(self.dockEditor.sizeEdit.currentText()), Qt.EditRole)
+            # Local
+            elif index.column() == 10:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.locationEdit.text()), Qt.EditRole)
+            # Cidade
+            elif index.column() == 11:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.cityEdit.text()), Qt.EditRole)
+            # Estado
+            elif index.column() == 12:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.stateEdit.text()), Qt.EditRole)
+            # País
+            elif index.column() == 13:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockEditor.countryEdit.text()), Qt.EditRole)
+            # Latitude
+            elif index.column() == 14:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockGeo.lat.text()), Qt.EditRole)
+            # Longitude
+            elif index.column() == 15:
+                mainWidget.model.setData(index,
+                        QVariant(self.dockGeo.long.text()), Qt.EditRole)
+            # Data
+            elif index.column() == 16:
+                mainWidget.model.setData(index,
+                    QVariant(self.dockThumb.initdate.text()), Qt.EditRole)
+
+        # Gambiarra para atualizar os valores da tabela
+        mainWidget.setFocus(Qt.OtherFocusReason)
+        # Mantém selecionado o que estava selecionado
+        for index in indexes:
+            mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
+        self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).'''
@@ -1582,8 +1714,9 @@ class DockEditor(QWidget):
         self.hbox = QHBoxLayout()
         self.setLayout(self.hbox)
 
+        # Loop para gerar campos de edição.
+        # Não sei se vale a pena o trabalho...
         e = 'Edit'
-
         for box in varnames:
             box_index = varnames.index(box)
             box_layid = 'form' + str(box_index)
@@ -1603,9 +1736,21 @@ class DockEditor(QWidget):
                     setattr(self, var + e, self.tageditor)
                 else:
                     setattr(self, var + e, QLineEdit())
+                # Cria instância dos objetos
                 label = eval('self.' + var)
                 edit = eval('self.' + var + e)
                 label.setBuddy(edit)
+                # Dá nome aos objetos, para o live update
+                edit.setObjectName(labels[box_index][var_index])
+                if var == 'caption':
+                    self.connect(edit,
+                            SIGNAL('textChanged()'), self.parent.runtimer)
+                elif var == 'size':
+                    self.connect(edit,
+                            SIGNAL('currentIndexChanged(QString)'), self.parent.runtimer)
+                else:
+                    self.connect(edit,
+                            SIGNAL('textEdited(QString)'), self.parent.runtimer)
                 if box_index == 0:
                     self.form0.addRow(label, edit)
                 elif box_index == 1:
@@ -1727,86 +1872,6 @@ class DockEditor(QWidget):
             self.countryEdit.setText(values[13][1])
             self.values = values
 
-    def savedata(self):
-        '''Salva valores dos campos para a tabela.'''
-        #TODO Fundir com a função pastedata...
-        indexes = mainWidget.selectedIndexes()
-        rows = [index.row() for index in indexes]
-        rows = list(set(rows))
-        nrows = len(rows)
-        for index in indexes:
-            # Título
-            if index.column() == 1:
-                mainWidget.model.setData(index,
-                    QVariant(self.titleEdit.text()), Qt.EditRole)
-            # Legenda
-            elif index.column() == 2:
-                mainWidget.model.setData(index,
-                    QVariant(self.captionEdit.toPlainText()), Qt.EditRole)
-            # Marcadores
-            elif index.column() == 3:
-                mainWidget.model.setData(index,
-                    QVariant(unicode(self.tagsEdit.text()).lower()),
-                    Qt.EditRole)
-            # Táxon
-            elif index.column() == 4:
-                mainWidget.model.setData(index,
-                        QVariant(self.taxonEdit.text()), Qt.EditRole)
-            # Espécie
-            elif index.column() == 5:
-                mainWidget.model.setData(index,
-                        QVariant(self.spEdit.text()), Qt.EditRole)
-            # Especialista
-            elif index.column() == 6:
-                mainWidget.model.setData(index,
-                        QVariant(self.sourceEdit.text()), Qt.EditRole)
-            # Autor
-            elif index.column() == 7:
-                mainWidget.model.setData(index,
-                        QVariant(self.authorEdit.text()), Qt.EditRole)
-            # Direitos
-            elif index.column() == 8:
-                mainWidget.model.setData(index,
-                        QVariant(self.rightsEdit.text()), Qt.EditRole)
-            # Tamanho
-            elif index.column() == 9:
-                mainWidget.model.setData(index,
-                    QVariant(self.sizeEdit.currentText()), Qt.EditRole)
-            # Local
-            elif index.column() == 10:
-                mainWidget.model.setData(index,
-                        QVariant(self.locationEdit.text()), Qt.EditRole)
-            # Cidade
-            elif index.column() == 11:
-                mainWidget.model.setData(index,
-                        QVariant(self.cityEdit.text()), Qt.EditRole)
-            # Estado
-            elif index.column() == 12:
-                mainWidget.model.setData(index,
-                        QVariant(self.stateEdit.text()), Qt.EditRole)
-            # País
-            elif index.column() == 13:
-                mainWidget.model.setData(index,
-                        QVariant(self.countryEdit.text()), Qt.EditRole)
-            # Latitude
-            elif index.column() == 14:
-                mainWidget.model.setData(index,
-                        QVariant(self.parent.dockGeo.lat.text()), Qt.EditRole)
-            # Longitude
-            elif index.column() == 15:
-                mainWidget.model.setData(index,
-                        QVariant(self.parent.dockGeo.long.text()), Qt.EditRole)
-            # Data
-            elif index.column() == 16:
-                mainWidget.model.setData(index,
-                    QVariant(self.parent.dockThumb.initdate.text()), Qt.EditRole)
-
-        # Gambiarra para atualizar os valores da tabela
-        mainWidget.setFocus(Qt.OtherFocusReason)
-        # Mantém selecionado o que estava selecionado
-        for index in indexes:
-            mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
-        self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
 
 class AutoModels():
@@ -2271,6 +2336,7 @@ class DockThumb(QWidget):
         self.timestamp = QLabel()
         self.initdate_label = QLabel(u'Data de criação:')
         self.initdate = QLineEdit()
+        self.initdate.setObjectName('Data')
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(300)
