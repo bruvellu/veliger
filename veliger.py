@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Sep 2010 03:17PM
+# Atualizado: 17 Sep 2010 04:19PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -334,7 +334,7 @@ class MainWindow(QMainWindow):
         except:
             print 'NONE!'
         print 'SENDER: %s' % self.sender()
-        self.timer.start(800)
+        self.timer.start(1200)
 
     def finishfocus(self):
         '''Se o timer apitar, salvar e manter o cursor no campo.'''
@@ -351,6 +351,8 @@ class MainWindow(QMainWindow):
     def finish(self, holdfocus=False):
         '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
         print 'finish'
+        # Mantém foco quando timer apita
+        hold = True
         print
         try:
             print 'LIVE: %s' % self.live_edit.objectName()
@@ -366,12 +368,14 @@ class MainWindow(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
         # Usa estado padrão para ver se foi modificado
-        if self.live_edit.isModified():
-            print 'LIVE: %s' % self.live_edit.objectName()
-            #TODO Compara texto pra ver se mudou...
-            print 'Salvando...'
-            self.savedata()
-            print 'Salvou...'
+        #if self.live_edit.isModified():
+        print 'LIVE: %s' % self.live_edit.objectName()
+        #TODO Compara texto pra ver se mudou...
+        print 'Salvando...'
+        if not self.sender().inherits('QTimer'):
+            hold = False
+        self.savedata(self.live_edit, hold)
+        print 'Salvou...'
 
     def clear(self):
         '''Limpa seleção das tabelas.'''
@@ -388,99 +392,115 @@ class MainWindow(QMainWindow):
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
 
-    def savedata(self):
+    def savedata(self, field, hold):
         '''Salva valores dos campos para a tabela.'''
-        #TODO Fundir com a função pastedata...
         indexes = mainWidget.selectedIndexes()
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
         nrows = len(rows)
-        for index in indexes:
-            # Título
-            if index.column() == 1:
+        if field.objectName() == u'Título':
+            for row in rows:
+                index = mainWidget.model.index(row, 1, QModelIndex())
                 mainWidget.model.setData(index,
                     QVariant(self.dockEditor.titleEdit.text()), Qt.EditRole)
-            # Legenda
-            elif index.column() == 2:
+        elif field.objectName() == u'Legenda':
+            for row in rows:
+                index = mainWidget.model.index(row, 2, QModelIndex())
                 mainWidget.model.setData(index,
-                    QVariant(self.dockEditor.captionEdit.toPlainText()), Qt.EditRole)
-            # Marcadores
-            elif index.column() == 3:
+                        QVariant(self.dockEditor.captionEdit.toPlainText()), Qt.EditRole)
+        elif field.objectName() == u'Marcadores':
+            for row in rows:
+                index = mainWidget.model.index(row, 3, QModelIndex())
                 mainWidget.model.setData(index,
-                    QVariant(unicode(self.dockEditor.tagsEdit.text()).lower()),
-                    Qt.EditRole)
-            # Táxon
-            elif index.column() == 4:
+                        QVariant(unicode(self.dockEditor.tagsEdit.text()).lower()),
+                        Qt.EditRole)
+        elif field.objectName() == u'Táxon':
+            for row in rows:
+                index = mainWidget.model.index(row, 4, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.taxonEdit.text()), Qt.EditRole)
-            # Espécie
-            elif index.column() == 5:
+        elif field.objectName() == u'Espécie':
+            for row in rows:
+                index = mainWidget.model.index(row, 5, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.spEdit.text()), Qt.EditRole)
-            # Especialista
-            elif index.column() == 6:
+        elif field.objectName() == u'Especialista':
+            for row in rows:
+                index = mainWidget.model.index(row, 6, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.sourceEdit.text()), Qt.EditRole)
-            # Autor
-            elif index.column() == 7:
+        elif field.objectName() == u'Autor':
+            for row in rows:
+                index = mainWidget.model.index(row, 7, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.authorEdit.text()), Qt.EditRole)
-            # Direitos
-            elif index.column() == 8:
+        elif field.objectName() == u'Direitos':
+            for row in rows:
+                index = mainWidget.model.index(row, 8, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.rightsEdit.text()), Qt.EditRole)
-            # Tamanho
-            elif index.column() == 9:
+        elif field.objectName() == u'Tamanho':
+            for row in rows:
+                index = mainWidget.model.index(row, 9, QModelIndex())
                 mainWidget.model.setData(index,
-                    QVariant(self.dockEditor.sizeEdit.currentText()), Qt.EditRole)
-            # Local
-            elif index.column() == 10:
+                        QVariant(self.dockEditor.sizeEdit.currentText()), Qt.EditRole)
+        elif field.objectName() == u'Local':
+            for row in rows:
+                index = mainWidget.model.index(row, 10, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.locationEdit.text()), Qt.EditRole)
-            # Cidade
-            elif index.column() == 11:
+        elif field.objectName() == u'Cidade':
+            for row in rows:
+                index = mainWidget.model.index(row, 11, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.cityEdit.text()), Qt.EditRole)
-            # Estado
-            elif index.column() == 12:
+        elif field.objectName() == u'Estado':
+            for row in rows:
+                index = mainWidget.model.index(row, 12, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.stateEdit.text()), Qt.EditRole)
-            # País
-            elif index.column() == 13:
+        elif field.objectName() == u'País':
+            for row in rows:
+                index = mainWidget.model.index(row, 13, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.countryEdit.text()), Qt.EditRole)
-            # Latitude
-            elif index.column() == 14:
+        elif field.objectName() == u'Latitude':
+            for row in rows:
+                index = mainWidget.model.index(row, 14, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.lat.text()), Qt.EditRole)
-            # Longitude
-            elif index.column() == 15:
+        elif field.objectName() == u'Longitude':
+            for row in rows:
+                index = mainWidget.model.index(row, 15, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.long.text()), Qt.EditRole)
-            # Data
-            elif index.column() == 16:
+        elif field.objectName() == u'Data':
+            for row in rows:
+                index = mainWidget.model.index(row, 16, QModelIndex())
                 mainWidget.model.setData(index,
                     QVariant(self.dockThumb.initdate.text()), Qt.EditRole)
-
+        
         # Salvando cursor
-        try:
-            cursor = self.live_edit.cursorPosition()
-            print 'Capturou cursor.'
-        except:
-            print 'Não capturou cursor por algum motivo...'
+        if hold:
+            try:
+                cursor = self.live_edit.cursorPosition()
+                print 'Capturou cursor.'
+            except:
+                print 'Não capturou cursor por algum motivo...'
         # Gambiarra para atualizar os valores da tabela
         mainWidget.setFocus(Qt.OtherFocusReason)
         # Mantém selecionado o que estava selecionado
         for index in indexes:
             mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
         # Foca campo e volta cursor para posição
-        try:
-            self.live_edit.setFocus()
-            print 'Foco!'
-            self.live_edit.setCursorPosition(cursor)
-            print 'Voltou cursor'
-        except:
-            print 'Não conseguiu dar foco...'
+        if hold:
+            try:
+                self.live_edit.setFocus()
+                print 'Foco!'
+                self.live_edit.setCursorPosition(cursor)
+                print 'Voltou cursor'
+            except:
+                print 'Não conseguiu dar foco...'
 
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
