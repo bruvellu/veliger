@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Sep 2010 09:00PM
+# Atualizado: 17 Sep 2010 10:03PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -324,19 +324,9 @@ class MainWindow(QMainWindow):
 
         Chamado antes de iniciar o timer.
         '''
-        if sender.objectName() == u'Legenda':
-            print '\n\n\nPORRA!\n'
-            indexes = mainWidget.selectedIndexes()
-            rows = [index.row() for index in indexes]
-            rows = list(set(rows))
-            print rows
-
-            print sender.document().isModified()
-            return sender.document().isModified()
-        elif sender.objectName() == u'Tamanho':
-            print 'tamanho'
+        if sender.objectName() == u'Tamanho':
+            return True
         else:
-            print sender.isModified()
             return sender.isModified()
 
     def runtimer(self):
@@ -422,10 +412,6 @@ class MainWindow(QMainWindow):
         rows = list(set(rows))
         nrows = len(rows)
 
-        # Verifica se o campo é uma legenda (por causa do cursor...)
-        live_caption = False
-        if field.objectName() == u'Legenda':
-            live_caption = True
         if field.objectName() == u'Título':
             for row in rows:
                 index = mainWidget.model.index(row, 1, QModelIndex())
@@ -435,7 +421,7 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 2, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.captionEdit.toPlainText()), Qt.EditRole)
+                        QVariant(self.dockEditor.captionEdit.text()), Qt.EditRole)
         elif field.objectName() == u'Marcadores':
             for row in rows:
                 index = mainWidget.model.index(row, 3, QModelIndex())
@@ -511,12 +497,7 @@ class MainWindow(QMainWindow):
         # Salvando cursor
         if hold:
             try:
-                if live_caption:
-                    #FIXME Difícil capturar posição do cursor no QTextEdit
-                    #cursor = self.live_edit.textCursor()
-                    pass
-                else:
-                    cursor = self.live_edit.cursorPosition()
+                cursor = self.live_edit.cursorPosition()
                 print 'Capturou cursor.'
             except:
                 print 'Não capturou cursor por algum motivo...'
@@ -528,12 +509,8 @@ class MainWindow(QMainWindow):
         # Foca campo e volta cursor para posição
         if hold:
             try:
-                if live_caption:
-                    #self.live_edit.setTextCursor(cursor)
-                    pass
-                else:
-                    self.live_edit.setFocus()
-                    self.live_edit.setCursorPosition(cursor)
+                self.live_edit.setFocus()
+                self.live_edit.setCursorPosition(cursor)
                 print 'Voltou cursor'
             except:
                 print 'Não conseguiu dar foco...'
@@ -1271,15 +1248,6 @@ class MainWindow(QMainWindow):
         #event.accept()
 
 
-class CaptionEdit(QTextEdit):
-    '''Editor da legenda.'''
-    def __init__(self, parent):
-        QTextEdit.__init__(self, parent)
-
-    def focusOutEvent(self, event):
-        self.emit(SIGNAL('lostFocus()'))
-
-
 class ManualDialog(QDialog):
     '''Janela do manual de instruções.'''
     def __init__(self, parent):
@@ -1737,10 +1705,7 @@ class DockEditor(QWidget):
             for var in box:
                 var_index = box.index(var)
                 setattr(self, var, QLabel('&' + labels[box_index][var_index] + ':'))
-                if var == 'caption':
-                    setattr(self, var + e, CaptionEdit(self))
-                    self.captionEdit.setTabChangesFocus(True)
-                elif var == 'size':
+                if var == 'size':
                     setattr(self, var + e, QComboBox())
                     eval('self.' + var + e + '.addItems(self.sizes)')
                 elif var == 'tags':
@@ -1753,16 +1718,17 @@ class DockEditor(QWidget):
                 label.setBuddy(edit)
                 # Dá nome aos objetos, para o live update
                 edit.setObjectName(labels[box_index][var_index])
-                if var == 'caption':
+                if var == 'size':
                     self.connect(edit,
-                           SIGNAL('lostFocus()'), self.parent.runtimer)
-                    pass
-                elif var == 'size':
-                    self.connect(edit,
-                            SIGNAL('currentIndexChanged(QString)'), self.parent.runtimer)
+                            SIGNAL('activated(QString)'),
+                            self.parent.runtimer)
                 else:
                     self.connect(edit,
-                            SIGNAL('textEdited(QString)'), self.parent.runtimer)
+                            SIGNAL('textEdited(QString)'),
+                            self.parent.runtimer)
+                    self.connect(edit,
+                            SIGNAL('editingFinished(QString)'),
+                            self.parent.finish)
                 if box_index == 0:
                     self.form0.addRow(label, edit)
                 elif box_index == 1:
