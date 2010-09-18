@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 18 Sep 2010 04:27AM
+# Atualizado: 18 Sep 2010 04:55AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -306,11 +306,6 @@ class MainWindow(QMainWindow):
                 self.finish
                 )
 
-    def taglive(self):
-        '''Captura texto completo dos marcadores.'''
-        print self.dockEditor.tagsEdit.text()
-        self.finish(self.tagcompleter.currentCompletion())
-
     def whoislive(self, sender):
         '''Identifica quem está sendo editado.'''
         self.live_edit = sender
@@ -329,48 +324,17 @@ class MainWindow(QMainWindow):
 
     def runtimer(self):
         '''Inicia o timer.'''
-        print 'runtimer'
         modified = self.has_changed(self.sender())
-        try:
-            print 'LIVE: %s' % self.live_edit.objectName()
-        except:
-            print 'NONE!'
-        print 'SENDER: %s' % self.sender()
         self.whoislive(self.sender())
-        try:
-            print 'LIVE: %s' % self.live_edit.objectName()
-        except:
-            print 'NONE!'
-        print 'SENDER: %s' % self.sender()
         if modified:
             self.timer.start(100)
         
     def finish(self, autocomplete=''):
         '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
-        print 'finish'
-        print autocomplete 
-        try:
-            print 'LIVE: %s' % self.live_edit.objectName()
-        except:
-            print 'NONE!'
-        print 'SENDER: %s' % self.sender()
-        try:
-            print 'LIVE: %s' % self.live_edit.objectName()
-        except:
-            print 'NONE!'
-        print 'SENDER: %s' % self.sender()
         # Parar o timer evita q o cursor volte para o campo
         if self.timer.isActive():
             self.timer.stop()
-        # Usa estado padrão para ver se foi modificado
-        #if self.live_edit.isModified():
-        print 'LIVE: %s' % self.live_edit.objectName()
-        #TODO Compara texto pra ver se mudou...
-        print 'Salvando...'
-        # Evita que cursor fique preso em um campo quando o sinal
-        # editingFinished é ativado
         #if not self.sender().inherits('QTimer'):
-        #    hold = False
         self.savedata(self.live_edit, autocomplete)
         print 'Salvou...'
 
