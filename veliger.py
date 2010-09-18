@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 18 Sep 2010 01:30AM
+# Atualizado: 18 Sep 2010 04:27AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -296,6 +296,8 @@ class MainWindow(QMainWindow):
                 self.tagcompleter.update)
         self.connect(self.tagcompleter, SIGNAL('activated(QString)'),
                 self.tageditor.complete_text)
+        self.connect(self.tageditor, SIGNAL('tagLive(QString)'),
+                self.finish)
 
         # Live update
         self.connect(
@@ -303,6 +305,11 @@ class MainWindow(QMainWindow):
                 SIGNAL('timeout()'),
                 self.finish
                 )
+
+    def taglive(self):
+        '''Captura texto completo dos marcadores.'''
+        print self.dockEditor.tagsEdit.text()
+        self.finish(self.tagcompleter.currentCompletion())
 
     def whoislive(self, sender):
         '''Identifica quem está sendo editado.'''
@@ -390,10 +397,8 @@ class MainWindow(QMainWindow):
         '''
         if first:
             return first
-        elif second:
-            return second
         else:
-            return False
+            return second
 
     def savedata(self, field, autocomplete):
         '''Salva valores dos campos para a tabela.'''
@@ -401,6 +406,12 @@ class MainWindow(QMainWindow):
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
         nrows = len(rows)
+
+        # Salva cursor
+        try:
+            cursor = field.cursorPosition()
+        except:
+            print 'Não capturou cursor...'
 
         if field.objectName() == u'Título':
             for row in rows:
@@ -416,7 +427,8 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 3, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(unicode(self.dockEditor.tagsEdit.text()).lower()),
+                        QVariant(unicode(self.choose_one(autocomplete,
+                            self.dockEditor.tagsEdit.text())).lower()),
                         Qt.EditRole)
         elif field.objectName() == u'Táxon':
             for row in rows:
@@ -509,6 +521,11 @@ class MainWindow(QMainWindow):
         # Mantém selecionado o que estava selecionado
         for index in indexes:
             mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
+
+        try:
+            field.setCursorPosition(cursor)
+        except:
+            print 'Não deu certo reposicionar o cursor.'
 
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
@@ -1887,12 +1904,6 @@ class MainCompleter(QCompleter):
         self.setCaseSensitivity(Qt.CaseInsensitive)
         self.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
-#
-#        self.connect(self, SIGNAL('activated(QString)'), emit_completer)
-#
-#    def emit_completer(self, text):
-#        '''Emit sinal informando texto autocompletado.'''
-#        self.emit(SIGNAL('
 
 
 class TagCompleter(QCompleter):
@@ -1949,6 +1960,7 @@ class CompleterLineEdit(QLineEdit):
         self.setText('%s%s, %s' % (before_text[:cursor_pos - prefix_len], text,
             after_text))
         self.setCursorPosition(cursor_pos - prefix_len + len(text) + 2)
+        self.emit(SIGNAL('tagLive(QString)'), self.text())
 
 
 class DockGeo(QWidget):
