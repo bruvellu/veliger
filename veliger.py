@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Sep 2010 10:03PM
+# Atualizado: 18 Sep 2010 01:30AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -68,6 +68,7 @@ class MainWindow(QMainWindow):
         self.about = AboutDialog(self)
         self.copied = []
         # Tagcompleter
+        #FIXME AUTOCOMPLETE NÃO ATUALIZA TABELA!
         self.tageditor = CompleterLineEdit(QLineEdit)
         self.tagcompleter = TagCompleter(self.automodels.tags,
                 self.tageditor)
@@ -298,20 +299,8 @@ class MainWindow(QMainWindow):
 
         # Live update
         self.connect(
-                self.dockThumb.initdate,
-                SIGNAL('textEdited(QString)'),
-                self.runtimer
-                )
-
-        self.connect(
                 self.timer,
                 SIGNAL('timeout()'),
-                self.finishfocus
-                )
-
-        self.connect(
-                self.dockThumb.initdate,
-                SIGNAL('editingFinished()'),
                 self.finish
                 )
 
@@ -325,6 +314,8 @@ class MainWindow(QMainWindow):
         Chamado antes de iniciar o timer.
         '''
         if sender.objectName() == u'Tamanho':
+            return True
+        elif self.sender().inherits('QCompleter'):
             return True
         else:
             return sender.isModified()
@@ -345,26 +336,12 @@ class MainWindow(QMainWindow):
             print 'NONE!'
         print 'SENDER: %s' % self.sender()
         if modified:
-            self.timer.start(1200)
-
-    def finishfocus(self):
-        '''Se o timer apitar, salvar e manter o cursor no campo.'''
-        print 'finishfocus'
-        print
-        try:
-            print 'LIVE: %s' % self.live_edit.objectName()
-            print 'LIVE: %s' % self.live_edit
-        except:
-            print 'NONE!'
-        print 'SENDER: %s' % self.sender()
-        self.finish(holdfocus=True)
+            self.timer.start(100)
         
-    def finish(self, holdfocus=False):
+    def finish(self, autocomplete=''):
         '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
         print 'finish'
-        # Mantém foco quando timer apita
-        hold = True
-        print
+        print autocomplete 
         try:
             print 'LIVE: %s' % self.live_edit.objectName()
         except:
@@ -385,9 +362,9 @@ class MainWindow(QMainWindow):
         print 'Salvando...'
         # Evita que cursor fique preso em um campo quando o sinal
         # editingFinished é ativado
-        if not self.sender().inherits('QTimer'):
-            hold = False
-        self.savedata(self.live_edit, hold)
+        #if not self.sender().inherits('QTimer'):
+        #    hold = False
+        self.savedata(self.live_edit, autocomplete)
         print 'Salvou...'
 
     def clear(self):
@@ -405,7 +382,20 @@ class MainWindow(QMainWindow):
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
 
-    def savedata(self, field, hold):
+    def choose_one(self, first, second):
+        '''Escolhe um entre dois objetos.
+
+        O primeiro tem prioridade sobre o segundo. Se ele existir, já será
+        escolhido.
+        '''
+        if first:
+            return first
+        elif second:
+            return second
+        else:
+            return False
+
+    def savedata(self, field, autocomplete):
         '''Salva valores dos campos para a tabela.'''
         indexes = mainWidget.selectedIndexes()
         rows = [index.row() for index in indexes]
@@ -432,27 +422,37 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 4, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.taxonEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.taxonEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Espécie':
             for row in rows:
                 index = mainWidget.model.index(row, 5, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.spEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.spEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Especialista':
             for row in rows:
                 index = mainWidget.model.index(row, 6, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.sourceEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.sourceEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Autor':
             for row in rows:
                 index = mainWidget.model.index(row, 7, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.authorEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.authorEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Direitos':
             for row in rows:
                 index = mainWidget.model.index(row, 8, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.rightsEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.rightsEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Tamanho':
             for row in rows:
                 index = mainWidget.model.index(row, 9, QModelIndex())
@@ -462,22 +462,31 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 10, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.locationEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.locationEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Cidade':
             for row in rows:
                 index = mainWidget.model.index(row, 11, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.cityEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.cityEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'Estado':
             for row in rows:
                 index = mainWidget.model.index(row, 12, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.stateEdit.text()), Qt.EditRole)
+                        QVariant(self.choose_one(autocomplete,
+                            self.dockEditor.stateEdit.text())),
+                        Qt.EditRole)
         elif field.objectName() == u'País':
             for row in rows:
                 index = mainWidget.model.index(row, 13, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.countryEdit.text()), Qt.EditRole)
+                        QVariant(
+                            self.choose_one(autocomplete,
+                            self.dockEditor.countryEdit.text())),
+                            Qt.EditRole)
         elif field.objectName() == u'Latitude':
             for row in rows:
                 index = mainWidget.model.index(row, 14, QModelIndex())
@@ -494,26 +503,12 @@ class MainWindow(QMainWindow):
                 mainWidget.model.setData(index,
                     QVariant(self.dockThumb.initdate.text()), Qt.EditRole)
         
-        # Salvando cursor
-        if hold:
-            try:
-                cursor = self.live_edit.cursorPosition()
-                print 'Capturou cursor.'
-            except:
-                print 'Não capturou cursor por algum motivo...'
         # Gambiarra para atualizar os valores da tabela
-        mainWidget.setFocus(Qt.OtherFocusReason)
+        #mainWidget.setFocus(Qt.OtherFocusReason)
+        mainWidget.selectionModel.reset()
         # Mantém selecionado o que estava selecionado
         for index in indexes:
             mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
-        # Foca campo e volta cursor para posição
-        if hold:
-            try:
-                self.live_edit.setFocus()
-                self.live_edit.setCursorPosition(cursor)
-                print 'Voltou cursor'
-            except:
-                print 'Não conseguiu dar foco...'
 
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
@@ -1726,9 +1721,9 @@ class DockEditor(QWidget):
                     self.connect(edit,
                             SIGNAL('textEdited(QString)'),
                             self.parent.runtimer)
-                    self.connect(edit,
-                            SIGNAL('editingFinished(QString)'),
-                            self.parent.finish)
+                    #self.connect(edit,
+                    #        SIGNAL('editingFinished()'),
+                    #        self.parent.finish)
                 if box_index == 0:
                     self.form0.addRow(label, edit)
                 elif box_index == 1:
@@ -1766,30 +1761,50 @@ class DockEditor(QWidget):
         self.tagcompleter.setWidget(self.tageditor)
 
         self.completer = MainCompleter(models.taxa, self)
+        # Envia texto autocompletado para poder ser salvo no savedata.
+        #XXX Melhorar isso...
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.taxonEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.spp, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.spEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.sources, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.sourceEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.authors, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.authorEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.rights, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.rightsEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.locations, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.locationEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.cities, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.cityEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.states, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.stateEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.countries, self)
+        self.connect(self.completer, SIGNAL('activated(QString)'),
+                self.parent.finish)
         self.countryEdit.setCompleter(self.completer)
 
     def setsingle(self, index, value, oldvalue):
@@ -1872,6 +1887,12 @@ class MainCompleter(QCompleter):
         self.setCaseSensitivity(Qt.CaseInsensitive)
         self.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
         self.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
+#
+#        self.connect(self, SIGNAL('activated(QString)'), emit_completer)
+#
+#    def emit_completer(self, text):
+#        '''Emit sinal informando texto autocompletado.'''
+#        self.emit(SIGNAL('
 
 
 class TagCompleter(QCompleter):
@@ -1903,7 +1924,7 @@ class CompleterLineEdit(QLineEdit):
     def __init__(self, *args):
         QLineEdit.__init__(self)
 
-        self.connect(self, SIGNAL('textChanged(QString)'), self.text_changed)
+        self.connect(self, SIGNAL('textEdited(QString)'), self.text_changed)
 
     def text_changed(self, text):
         all_text = unicode(text)
@@ -1936,6 +1957,7 @@ class DockGeo(QWidget):
         QWidget.__init__(self, parent)
 
         self.changeStatus = parent.changeStatus
+        self.parent = parent
 
         # Layout do dock
         self.hbox = QHBoxLayout()
@@ -1943,8 +1965,10 @@ class DockGeo(QWidget):
         # Editor
         self.lat_label = QLabel(u'Latitude:')
         self.lat = QLineEdit()
+        self.lat.setObjectName(u'Latitude')
         self.long_label = QLabel(u'Longitude:')
         self.long = QLineEdit()
+        self.long.setObjectName(u'Longitude')
         self.updatebutton = QPushButton(u'&Atualizar', self)
 
         # Layout do Editor
@@ -1991,6 +2015,29 @@ class DockGeo(QWidget):
                 self.state
                 )
 
+        # Live update
+        self.connect(
+                self.lat,
+                SIGNAL('textEdited(QString)'),
+                self.parent.runtimer
+                )
+        #self.connect(
+        #        self.lat,
+        #        SIGNAL('editingFinished()'),
+        #        self.parent.finish
+        #        )
+        self.connect(
+                self.long,
+                SIGNAL('textEdited(QString)'),
+                self.parent.runtimer
+                )
+        #self.connect(
+        #        self.long,
+        #        SIGNAL('editingFinished()'),
+        #        self.parent.finish
+        #        )
+
+
     def state(self, visible):
         '''Relata se aba está visível e/ou selecionada.
 
@@ -2024,6 +2071,8 @@ class DockGeo(QWidget):
         dms_str = self.gps_string(dms)
         self.lat.setText(dms_str['lat'])
         self.long.setText(dms_str['long'])
+        self.parent.savedata(self.lat, True)
+        self.parent.savedata(self.long, True)
 
     def update_geo(self):
         '''Captura as coordenadas do marcador para atualizar o editor.'''
@@ -2313,7 +2362,7 @@ class DockThumb(QWidget):
         self.timestamp = QLabel()
         self.initdate_label = QLabel(u'Data de criação:')
         self.initdate = QLineEdit()
-        self.initdate.setObjectName('Data')
+        self.initdate.setObjectName(u'Data')
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(300)
@@ -2357,6 +2406,19 @@ class DockThumb(QWidget):
                 SIGNAL('dataChanged(index, value, oldvalue)'),
                 self.setsingle
                 )
+
+        # Live update
+        self.connect(
+                self.initdate,
+                SIGNAL('textEdited(QString)'),
+                self.parent.runtimer
+                )
+
+        #self.connect(
+        #        self.initdate,
+        #        SIGNAL('editingFinished()'),
+        #        self.parent.finish
+        #        )
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
