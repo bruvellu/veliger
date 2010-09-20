@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 07:52PM
+# Atualizado: 20 Sep 2010 07:53PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -826,57 +826,6 @@ class MainWindow(QMainWindow):
             # Salva cache
             self.cachetable()
             return 0
-
-    def exiftool(self, values):
-        '''Grava os metadados no arquivo.
-
-        Usa subprocesso para chamar o exiftool, que gravará os metadados
-        modificados na imagem.
-
-        Função não utilizada, mas pode ser útil algum dia.
-        '''
-        try:
-            shellcall = [
-                    'exiftool',
-                    '-overwrite_original',
-                    '-ObjectName=%s' % values[1],
-                    '-Caption-Abstract=%s' % values[2],
-                    '-Headline=%s' % values[4],
-                    '-OriginalTransmissionReference=%s' % values[5],
-                    '-Source=%s' % values[6],
-                    '-By-line=%s' % values[7],
-                    '-CopyrightNotice=%s' % values[8],
-                    '-SpecialInstructions=%s' % values[9],
-                    '-Sub-location=%s' % values[10],
-                    '-City=%s' % values[11],
-                    '-Province-State=%s' % values[12],
-                    '-Country-PrimaryLocationName=%s' % values[13],
-                    '-UsageTerms="Creative Commons BY-NC-SA"',
-                    ]
-            # Lista com keywords
-            if values[3] == '' or values[3] is None:
-                shellcall.append('-Keywords=')
-            else:
-                keywords = values[3].split(', ')
-                for keyword in keywords:
-                    shellcall.append('-Keywords=%s' % keyword.lower())
-            shellcall.append(values[0])
-            # Executando o comando completo
-            stdout = subprocess.call(shellcall)
-        except IOError:
-            print '\nOcorreu algum erro. ',
-            print 'Verifique se o ExifTool está instalado.'
-            self.changeStatus(u'ERRO: Verifique se o exiftool está instalado',
-                    10000)
-            critical = QMessageBox()
-            critical.setWindowTitle(u'Erro!')
-            critical.setText(u'Verifique se o exiftool está instalado.')
-            critical.setIcon(QMessageBox.Critical)
-            critical.exec_()
-        else:
-            # Salva cache
-            self.cachetable()
-            return stdout
 
     def changeStatus(self, status, duration=2000):
         '''Muda a mensagem de status da janela principal.'''
