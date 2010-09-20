@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 18 Sep 2010 04:59AM
+# Atualizado: 20 Sep 2010 05:24PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -479,13 +479,17 @@ class MainWindow(QMainWindow):
                 mainWidget.model.setData(index,
                     QVariant(self.dockThumb.initdate.text()), Qt.EditRole)
         
+        # Salva o current para evitar que volte para 0 após reset()
+        oldindex = mainWidget.selectionModel.currentIndex()
         # Gambiarra para atualizar os valores da tabela
-        #mainWidget.setFocus(Qt.OtherFocusReason)
         mainWidget.selectionModel.reset()
+        # Aplica o current para evitar que volte para 0 após reset()
+        mainWidget.selectionModel.setCurrentIndex(oldindex, QItemSelectionModel.Select)
         # Mantém selecionado o que estava selecionado
         for index in indexes:
-            mainWidget.selectionModel.select(index, QItemSelectionModel.Select)
-
+            mainWidget.selectionModel.select(index,
+                    QItemSelectionModel.Select)
+        # Volta cursor para posição
         try:
             field.setCursorPosition(cursor)
         except:
