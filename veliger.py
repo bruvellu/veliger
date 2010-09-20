@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 07:53PM
+# Atualizado: 20 Sep 2010 08:35PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -834,7 +834,10 @@ class MainWindow(QMainWindow):
     def openfile_dialog(self):
         '''Abre janela para escolher arquivos.
 
-        Para selecionar arquivo(s) terminados em .jpg.
+        Apenas arquivos terminados em jpg, jpeg, JPG e JPEG apareceram. Ele
+        reconhece a posição do último arquivo aberto e checa a existência de
+        possíveis duplicatas já presentes na tabela (baseado no nome do
+        arquivo).
         '''
         self.openfile = QFileDialog()
         filepaths = self.openfile.getOpenFileNames(self, 'Selecionar imagem(ns)',
@@ -867,7 +870,8 @@ class MainWindow(QMainWindow):
     def opendir_dialog(self):
         '''Abre janela para selecionar uma pasta.
         
-        Chama a função para varrer a pasta selecionada.
+        Chama a função para varrer recursivamente a pasta selecionada. Lembra
+        qual foi a última pasta escolhida.
         '''
         self.opendir = QFileDialog()
         folder = self.opendir.getExistingDirectory(
@@ -919,9 +923,10 @@ class MainWindow(QMainWindow):
         self.cachetable()
             
     def createmeta(self, filepath, charset='utf-8'):
-        '''Define as variáveis extraídas dos metadados (IPTC) da imagem.
+        '''Define as variáveis extraídas dos metadados (IPTC e EXIF) da imagem.
 
-        Usa a biblioteca do arquivo iptcinfo.py e retorna lista com valores.
+        Usa a biblioteca do arquivo iptcinfo.py e pyexiv. Retorna lista com
+        valores.
         '''
         filepath = unicode(filepath)
         filename = os.path.basename(filepath)
@@ -1006,8 +1011,7 @@ class MainWindow(QMainWindow):
         return entrymeta
 
     def createthumbs(self, filepath):
-        '''Cria thumbnails para as fotos novas.'''
-
+        '''Cria thumbnails para as fotos novas usando o PIL.'''
         size = 400, 400
         hasdir = os.path.isdir(thumbdir)
         if hasdir is True:
@@ -1067,7 +1071,7 @@ class MainWindow(QMainWindow):
                     unsaved.append(filename)
                 else:
                     continue
-            #TODO Tem algum jeito de melhorar esse função?
+            #XXX Tem algum jeito de melhorar essa função? Repete sequência.
             if len(unsaved) > 0:
                 warning = QMessageBox.warning(
                         self,
@@ -1111,7 +1115,7 @@ class MainWindow(QMainWindow):
 
         Antes de deletar checa se existem imagens não-salvas na lista.
         '''
-        # Ver se não dá pra melhorar...
+        #XXX Ver se não dá pra melhorar... Repete sequência.
         if len(self.dockUnsaved.mylist) == 0:
             rows = self.model.rowCount(self.model)
             if rows > 0:
@@ -1143,6 +1147,7 @@ class MainWindow(QMainWindow):
         
         Cria backup dos conteúdos da tabela e da lista de imagens modificadas.
         '''
+        #TODO Integrar com QSettings()?
         print 'Backup...',
         #self.changeStatus(u'Salvando backup...')
         # Tabela
@@ -1428,37 +1433,32 @@ class MainTable(QTableView):
         self.setAlternatingRowColors(True)
         self.setSelectionBehavior(self.SelectRows)
         self.setSortingEnabled(True)
+        # Esconde nome do arquivo.
         self.hideColumn(0)
+        # Esconde timestamp.
         self.hideColumn(17)
         self.selecteditems = []
 
-        # Para limpar entrada dumb na inicialização
+        # Para limpar entrada dumb na inicialização.
         if self.nrows == 1 and self.mydata[0][0] == '':
             self.model.remove_rows(0, 1, QModelIndex())
 
-        self.connect(
-                self.selectionModel,
+        self.connect(self.selectionModel,
                 SIGNAL('currentChanged(QModelIndex, QModelIndex)'),
                 self.changecurrent)
         
-        #XXX Não utilizado
-        self.connect(
-                self.verticalScrollBar(),
+        #TODO Não utilizado. Deletar?
+        self.connect(self.verticalScrollBar(),
                 SIGNAL('valueChanged(int)'),
-                self.outputrows
-                )
+                self.outputrows)
 
-        self.connect(
-                self.model,
+        self.connect(self.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.editmultiple
-                )
+                self.editmultiple)
 
-        self.connect(
-                self.model,
+        self.connect(self.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.resizecols
-                )
+                self.resizecols)
 
     def editmultiple(self, index, value, oldvalue):
         '''Edita outras linhas selecionadas.'''
@@ -1648,7 +1648,7 @@ class DockEditor(QWidget):
         self.tagcompleter.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
 
         # Loop para gerar campos de edição.
-        # Não sei se vale a pena o trabalho...
+        #XXX Não sei se vale a pena o trabalho...
         e = 'Edit'
         for box in varnames:
             box_index = varnames.index(box)
@@ -1951,52 +1951,30 @@ class DockGeo(QWidget):
         self.hbox.addWidget(self.map)
         self.setLayout(self.hbox)
 
-        self.connect(
-                self.updatebutton,
+        self.connect(self.updatebutton,
                 SIGNAL('clicked()'),
-                self.update_geo
-                )
+                self.update_geo)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('thisIsCurrent(values)'),
-                self.setcurrent
-                )
+                self.setcurrent)
 
-        self.connect(
-                mainWidget.model,
+        self.connect(mainWidget.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.setsingle
-                )
+                self.setsingle)
 
-        self.connect(
-                parent,
+        self.connect(parent,
                 SIGNAL('ismapSelected(visible)'),
-                self.state
-                )
+                self.state)
 
         # Live update
-        self.connect(
-                self.lat,
+        self.connect(self.lat,
                 SIGNAL('textEdited(QString)'),
-                self.parent.runtimer
-                )
-        #self.connect(
-        #        self.lat,
-        #        SIGNAL('editingFinished()'),
-        #        self.parent.finish
-        #        )
-        self.connect(
-                self.long,
-                SIGNAL('textEdited(QString)'),
-                self.parent.runtimer
-                )
-        #self.connect(
-        #        self.long,
-        #        SIGNAL('editingFinished()'),
-        #        self.parent.finish
-        #        )
+                self.parent.runtimer)
 
+        self.connect(self.long,
+                SIGNAL('textEdited(QString)'),
+                self.parent.runtimer)
 
     def state(self, visible):
         '''Relata se aba está visível e/ou selecionada.
@@ -2250,7 +2228,8 @@ class DockGeo(QWidget):
         else:
             # Possivelmente isso não vai aparecer nunca por causa do
             # self.state.
-            self.map.setHtml('''<html><head></head><body><h1>Recarregue</h1></body></html>''')
+            self.map.setHtml('''<html><head></head><body><h1>Clique na entrada
+                    novamente...</h1></body></html>''')
 
     def string_gps(self, latitude, longitude):
         '''Converte string das coordenadas para dicionário.'''
@@ -2349,36 +2328,22 @@ class DockThumb(QWidget):
 
         QPixmapCache.setCacheLimit(81920)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('thisIsCurrent(values)'),
-                self.setcurrent
-                )
+                self.setcurrent)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('visibleRow(filepath)'),
-                self.pixmapcache
-                )
+                self.pixmapcache)
 
-        self.connect(
-                mainWidget.model,
+        self.connect(mainWidget.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.setsingle
-                )
+                self.setsingle)
 
         # Live update
-        self.connect(
-                self.initdate,
+        self.connect(self.initdate,
                 SIGNAL('textEdited(QString)'),
-                self.parent.runtimer
-                )
-
-        #self.connect(
-        #        self.initdate,
-        #        SIGNAL('editingFinished()'),
-        #        self.parent.finish
-        #        )
+                self.parent.runtimer)
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
@@ -2435,8 +2400,7 @@ class DockThumb(QWidget):
             self.thumb.setText(u'Imagem indisponível')
             pass
         else:
-            scaledpic = self.pic.scaled(self.width(),
-                    self.height()-65,
+            scaledpic = self.pic.scaled(self.width(), self.height()-65,
                     Qt.KeepAspectRatio, Qt.FastTransformation)
             self.thumb.setPixmap(scaledpic)
 
@@ -2473,35 +2437,25 @@ class DockUnsaved(QWidget):
         self.vbox.addWidget(self.savebutton)
         self.setLayout(self.vbox)
 
-        self.connect(
-                mainWidget.model,
+        self.connect(mainWidget.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.insertentry
-                )
+                self.insertentry)
 
-        self.connect(
-                self.view.selectionModel,
+        self.connect(self.view.selectionModel,
                 SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
-                self.sync_setselection
-                )
+                self.sync_setselection)
 
-        self.connect(
-                self.savebutton,
+        self.connect(self.savebutton,
                 SIGNAL('clicked()'),
-                parent.commitmeta
-                )
+                parent.commitmeta)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('savedToFile()'),
-                self.clearlist
-                )
+                self.clearlist)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('delEntry(filename)'),
-                self.delentry
-                )
+                self.delentry)
 
     def sync_setselection(self, selected, deselected):
         '''Sincroniza seleção da tabela com a seleção da lista.'''
@@ -2595,19 +2549,6 @@ class ListModel(QAbstractListModel):
         return True
 
 
-class FlushFile(object):
-    '''Tira o buffer do print.
-
-    Assim rola juntar prints diferentes na mesma linha. Só pra ficar
-    bonitinho... meio inútil.
-    '''
-    def __init__(self, f):
-        self.f = f
-    def write(self, x):
-        self.f.write(x)
-        self.f.flush()
-
-
 #=== MAIN ===#
 
 
@@ -2624,9 +2565,6 @@ class InitPs():
         global thumbdir
 
         thumbdir = 'thumbs'
-
-        # Redefine o stdout para ser flushed após print
-        #sys.stdout = FlushFile(sys.stdout)
         
         # Cabeçalho horizontal da tabela principal
         header = [
