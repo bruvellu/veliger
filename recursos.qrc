@@ -3,7 +3,6 @@
     <file alias="conversor.png">icons/document-import.png</file>
     <file alias="arquivo.png">icons/document-open.png</file>
     <file alias="salvar.png">icons/document-save.png</file>
-    <file alias="gravar.png">icons/document-save-as.png</file>
     <file alias="copiar.png">icons/edit-copy.png</file>
     <file alias="colar.png">icons/edit-paste.png</file>
     <file alias="options.png">icons/document-properties.png</file>

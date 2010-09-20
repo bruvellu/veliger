@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 05:53PM
+# Atualizado: 20 Sep 2010 06:44PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -143,18 +143,9 @@ class MainWindow(QMainWindow):
         self.delRow.setStatusTip(u'Deletar entrada')
         self.connect(self.delRow, SIGNAL('triggered()'), self.delcurrent)
 
-        self.saveFile = QAction(QIcon(u':/salvar.png'),
-                u'Salvar metadados', self)
-        self.saveFile.setShortcut('Ctrl+S')
-        self.saveFile.setStatusTip(u'Salvar metadados')
-        self.connect(self.saveFile, SIGNAL('triggered()'),
-                self.savedata)
-        #salvo = lambda: self.changeStatus(u'Alterações salvas!')
-        #self.saveFile.triggered.connect(salvo)
-
-        self.writeMeta = QAction(QIcon(u':/gravar.png'),
+        self.writeMeta = QAction(QIcon(u':/salvar.png'),
                 u'Gravar metadados', self)
-        self.writeMeta.setShortcut('Ctrl+Shift+S')
+        self.writeMeta.setShortcut('Ctrl+S')
         self.writeMeta.setStatusTip(u'Gravar metadados na imagem')
         self.connect(self.writeMeta, SIGNAL('triggered()'),
                 self.commitmeta)
@@ -222,8 +213,6 @@ class MainWindow(QMainWindow):
         self.arquivo.addSeparator()
         self.arquivo.addAction(self.writeMeta)
         self.arquivo.addSeparator()
-        self.arquivo.addAction(self.openPref)
-        self.arquivo.addSeparator()
         self.arquivo.addAction(self.exit)
 
         self.editar = self.menubar.addMenu('&Editar')
@@ -231,11 +220,11 @@ class MainWindow(QMainWindow):
         self.editar.addSeparator()
         self.editar.addAction(self.copyMeta)
         self.editar.addAction(self.pasteMeta)
-        self.editar.addAction(self.saveFile)
         self.editar.addAction(self.delRow)
         self.editar.addSeparator()
         self.editar.addAction(self.convertChar)
         self.editar.addSeparator()
+        self.editar.addAction(self.openPref)
         
         self.janela = self.menubar.addMenu('&Janela')
         self.janela.addAction(self.toggleEditor)
@@ -254,9 +243,9 @@ class MainWindow(QMainWindow):
         self.toolbar.addAction(self.openDir)
         self.toolbar.addAction(self.copyMeta)
         self.toolbar.addAction(self.pasteMeta)
-        self.toolbar.addAction(self.saveFile)
         self.toolbar.addAction(self.delRow)
         self.toolbar = self.addToolBar('Sair')
+        self.toolbar.addAction(self.writeMeta)
         self.toolbar.addAction(self.exit)
 
         # Docks
