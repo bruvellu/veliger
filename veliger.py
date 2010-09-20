@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 05:24PM
+# Atualizado: 20 Sep 2010 05:53PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -58,6 +58,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         QMainWindow.__init__(self)
         # Definições
+        #XXX Global pela facilidade de acesso. Melhorar eventualmente.
         global mainWidget
         global options
         mainWidget = MainTable(datalist, header)
@@ -66,15 +67,9 @@ class MainWindow(QMainWindow):
         options = PrefsDialog(self)
         self.help = ManualDialog(self)
         self.about = AboutDialog(self)
+        # Objeto que guarda valores copiados.
         self.copied = []
-        # Tagcompleter
-        #FIXME AUTOCOMPLETE NÃO ATUALIZA TABELA!
-        self.tageditor = CompleterLineEdit(QLineEdit)
-        self.tagcompleter = TagCompleter(self.automodels.tags,
-                self.tageditor)
-        self.tagcompleter.setCaseSensitivity(Qt.CaseInsensitive)
-        self.tagcompleter.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
-        self.tagcompleter.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
+
         # Dock com thumbnail
         self.dockThumb = DockThumb(self)
         self.thumbDockWidget = QDockWidget(u'Thumbnail', self)
@@ -291,12 +286,14 @@ class MainWindow(QMainWindow):
                 self.setselection
                 )
 
-        self.connect(self.tageditor,
+        self.connect(self.dockEditor.tageditor,
                 SIGNAL('text_changed(PyQt_PyObject, PyQt_PyObject)'),
-                self.tagcompleter.update)
-        self.connect(self.tagcompleter, SIGNAL('activated(QString)'),
-                self.tageditor.complete_text)
-        self.connect(self.tageditor, SIGNAL('tagLive(QString)'),
+                self.dockEditor.tagcompleter.update)
+        self.connect(self.dockEditor.tagcompleter,
+                SIGNAL('activated(QString)'),
+                self.dockEditor.tageditor.complete_text)
+        self.connect(self.dockEditor.tageditor,
+                SIGNAL('tagLive(QString)'),
                 self.finish)
 
         # Live update
@@ -365,18 +362,24 @@ class MainWindow(QMainWindow):
             return second
 
     def savedata(self, field, autocomplete):
-        '''Salva valores dos campos para a tabela.'''
+        '''Salva valores dos campos para a tabela.
+        
+        Usa o nome do objeto (designado na criação) para identificar o campo
+        que está sendo editado. Apenas este campo será salvo.
+        '''
+        # Guarda entradas selecionadas para edição múltipla.
         indexes = mainWidget.selectedIndexes()
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
         nrows = len(rows)
 
-        # Salva cursor
+        # Salva posição do cursor.
         try:
             cursor = field.cursorPosition()
         except:
             print 'Não capturou cursor...'
-
+        
+        # Inicia live update da tabela.
         if field.objectName() == u'Título':
             for row in rows:
                 index = mainWidget.model.index(row, 1, QModelIndex())
@@ -1667,11 +1670,17 @@ class DockEditor(QWidget):
 
         self.changeStatus = parent.changeStatus
 
-        self.tageditor = parent.tageditor
-        self.tagcompleter = parent.tagcompleter
-
         self.hbox = QHBoxLayout()
         self.setLayout(self.hbox)
+
+        # Tagcompleter
+        # Cria instância do autocompletador
+        self.tageditor = CompleterLineEdit(QLineEdit)
+        self.tagcompleter = TagCompleter(self.parent.automodels.tags,
+                self.tageditor)
+        self.tagcompleter.setCaseSensitivity(Qt.CaseInsensitive)
+        self.tagcompleter.setCompletionMode(QCompleter.UnfilteredPopupCompletion)
+        self.tagcompleter.setModelSorting(QCompleter.CaseInsensitivelySortedModel)
 
         # Loop para gerar campos de edição.
         # Não sei se vale a pena o trabalho...
