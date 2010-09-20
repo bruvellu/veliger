@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 06:44PM
+# Atualizado: 20 Sep 2010 07:52PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -32,12 +32,14 @@ import pyexiv2
 
 from PIL import Image
 from shutil import copy
+# Ver iptcinfo.py
 from iptcinfo import IPTCInfo
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 
+# Gerado com: pyrcc4 -o recursos.py recursos.qrc
 import recursos
 
 __author__ = 'Bruno Vellutini'
@@ -87,8 +89,7 @@ class MainWindow(QMainWindow):
         self.editorDockWidget = QDockWidget(u'Editor', self)
         self.editorDockWidget.setAllowedAreas(
                 Qt.TopDockWidgetArea |
-                Qt.BottomDockWidgetArea
-                )
+                Qt.BottomDockWidgetArea)
         self.editorDockWidget.setWidget(self.dockEditor)
 
         # Timer
@@ -105,31 +106,38 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(u'Pronto para editar!', 2000)
         self.menubar = self.menuBar()
 
-        # Ações do menu
+        ## Ações do menu
+        # Sair
         self.exit = QAction(QIcon(u':/desligar.png'),
                 u'Sair', self)
         self.exit.setShortcut('Ctrl+Q')
         self.exit.setStatusTip(u'Fechar o programa')
         self.connect(self.exit, SIGNAL('triggered()'), SLOT('close()'))
 
+        # Abrir arquivo(s)
         self.openFile = QAction(QIcon(u':/arquivo.png'),
                 u'Abrir arquivo(s)', self)
         self.openFile.setShortcut('Ctrl+O')
         self.openFile.setStatusTip(u'Abrir imagens')
-        self.connect(self.openFile, SIGNAL('triggered()'), self.openfile_dialog)
+        self.connect(self.openFile, SIGNAL('triggered()'),
+                self.openfile_dialog)
 
+        # Abrir pasta
         self.openDir = QAction(QIcon(u':/pasta.png'),
                 u'Abrir pasta(s)', self)
         self.openDir.setShortcut('Ctrl+D')
         self.openDir.setStatusTip(u'Abrir pasta')
-        self.connect(self.openDir, SIGNAL('triggered()'), self.opendir_dialog)
+        self.connect(self.openDir, SIGNAL('triggered()'),
+                self.opendir_dialog)
 
+        # Copiar metadados
         self.copyMeta = QAction(QIcon(u':/copiar.png'),
                 u'Copiar metadados', self)
         self.copyMeta.setShortcut('Ctrl+C')
         self.copyMeta.setStatusTip(u'Copiar metadados da entrada selecionada')
         self.connect(self.copyMeta, SIGNAL('triggered()'), self.copydata)
-
+        
+        # Colar metadados
         self.pasteMeta = QAction(QIcon(u':/colar.png'),
                 u'Colar metadados', self)
         self.pasteMeta.setShortcut('Ctrl+V')
@@ -137,12 +145,14 @@ class MainWindow(QMainWindow):
                 u'Colar metadados na(s) entrada(s) selecionada(s)')
         self.connect(self.pasteMeta, SIGNAL('triggered()'), self.pastedata)
 
+        # Deletar entrada(s)
         self.delRow = QAction(QIcon(u':/deletar.png'),
                 u'Deletar entrada(s)', self)
         self.delRow.setShortcut('Ctrl+W')
         self.delRow.setStatusTip(u'Deletar entrada')
         self.connect(self.delRow, SIGNAL('triggered()'), self.delcurrent)
 
+        # Gravar metadados nas imagens
         self.writeMeta = QAction(QIcon(u':/salvar.png'),
                 u'Gravar metadados', self)
         self.writeMeta.setShortcut('Ctrl+S')
@@ -153,11 +163,13 @@ class MainWindow(QMainWindow):
                 u'Metadados gravados na(s) imagem(ns)')
         self.writeMeta.triggered.connect(salvo)
 
+        # Limpar tabela
         self.delAll = QAction(QIcon(u':/deletar.png'),
                 u'Limpar tabela', self)
         self.delAll.setStatusTip(u'Deletar todas as entradas')
         self.connect(self.delAll, SIGNAL('triggered()'), self.cleartable)
 
+        # Conversor para UTF-8
         self.convertChar = QAction(QIcon(u':/conversor.png'),
                 u'Converter codificação (Latin-1 -> UTF-8)', self)
         self.convertChar.setStatusTip(
@@ -166,6 +178,7 @@ class MainWindow(QMainWindow):
         self.connect(self.convertChar, SIGNAL('triggered()'),
                 self.charconverter)
 
+        # Opções
         self.openPref = QAction(QIcon(u':/options.png'),
                 u'Opções', self)
         self.openPref.setStatusTip(u'Abrir opções do programa')
@@ -178,6 +191,7 @@ class MainWindow(QMainWindow):
         self.connect(self.openManual, SIGNAL('triggered()'),
                 self.openmanual_dialog)
 
+        # Sobre o programa
         self.openAbout = QAction(QIcon(u':/sobre.png'),
                 u'Sobre', self)
         self.openAbout.setStatusTip(u'Sobre o programa')
@@ -191,11 +205,9 @@ class MainWindow(QMainWindow):
         self.toggleGeo = self.geoDockWidget.toggleViewAction()
         self.toggleGeo.setShortcut('Shift+G')
         self.toggleGeo.setStatusTip(u'Esconde ou mostra o dock com geolocalização')
-
         self.toggleEditor = self.editorDockWidget.toggleViewAction()
         self.toggleEditor.setShortcut('Shift+E')
         self.toggleEditor.setStatusTip(u'Esconde ou mostra o dock com o editor')
-
         self.toggleUnsaved = self.unsavedDockWidget.toggleViewAction()
         self.toggleUnsaved.setShortcut('Shift+U')
         self.toggleUnsaved.setStatusTip(u'Esconde ou mostra o dock com modificadas')
@@ -206,7 +218,8 @@ class MainWindow(QMainWindow):
         self.clearselection.triggered.connect(self.clear)
         self.addAction(self.clearselection)
 
-        # Menu
+        ## Menu
+        # Arquivo
         self.arquivo = self.menubar.addMenu('&Arquivo')
         self.arquivo.addAction(self.openFile)
         self.arquivo.addAction(self.openDir)
@@ -215,6 +228,7 @@ class MainWindow(QMainWindow):
         self.arquivo.addSeparator()
         self.arquivo.addAction(self.exit)
 
+        # Editar
         self.editar = self.menubar.addMenu('&Editar')
         self.editar.addAction(self.delAll)
         self.editar.addSeparator()
@@ -225,13 +239,15 @@ class MainWindow(QMainWindow):
         self.editar.addAction(self.convertChar)
         self.editar.addSeparator()
         self.editar.addAction(self.openPref)
-        
+
+        # Janela        
         self.janela = self.menubar.addMenu('&Janela')
         self.janela.addAction(self.toggleEditor)
         self.janela.addAction(self.toggleThumb)
         self.janela.addAction(self.toggleGeo)
         self.janela.addAction(self.toggleUnsaved)
 
+        # Ajuda
         self.ajuda = self.menubar.addMenu('&Ajuda')
         self.ajuda.addAction(self.openManual)
         self.ajuda.addSeparator()
@@ -263,34 +279,18 @@ class MainWindow(QMainWindow):
         self.readsettings()
 
         # Conexões
-        self.connect(
-                self.geoDockWidget,
+        self.connect(self.geoDockWidget,
                 SIGNAL('visibilityChanged(bool)'),
-                self.istab_selected
-                )
+                self.istab_selected)
         
-        self.connect(
-                self.dockUnsaved,
+        self.connect(self.dockUnsaved,
                 SIGNAL('syncSelection(filename)'),
-                self.setselection
-                )
-
-        self.connect(self.dockEditor.tageditor,
-                SIGNAL('text_changed(PyQt_PyObject, PyQt_PyObject)'),
-                self.dockEditor.tagcompleter.update)
-        self.connect(self.dockEditor.tagcompleter,
-                SIGNAL('activated(QString)'),
-                self.dockEditor.tageditor.complete_text)
-        self.connect(self.dockEditor.tageditor,
-                SIGNAL('tagLive(QString)'),
-                self.finish)
+                self.setselection)
 
         # Live update
-        self.connect(
-                self.timer,
+        self.connect(self.timer,
                 SIGNAL('timeout()'),
-                self.finish
-                )
+                self.finish)
 
     def whoislive(self, sender):
         '''Identifica quem está sendo editado.'''
@@ -304,23 +304,32 @@ class MainWindow(QMainWindow):
         if sender.objectName() == u'Tamanho':
             return True
         elif self.sender().inherits('QCompleter'):
+            # Se o objeto for autocomplete, declarar modificado.
             return True
         else:
             return sender.isModified()
 
     def runtimer(self):
-        '''Inicia o timer.'''
+        '''Inicia o timer caso o objeto esteja modificado.'''
+        # Verifica se foi modificado.
         modified = self.has_changed(self.sender())
+        # Identifica objeto que está sendo editado.
         self.whoislive(self.sender())
+        # Inicia o timer se o objeto estiver modificado.
         if modified:
             self.timer.start(100)
         
     def finish(self, autocomplete=''):
-        '''Se o campo perder o foco, salvar (sem mexer no cursor).'''
+        '''Desencadeia o processo de salvar.
+        
+        Pode ser chamada diretamente, sem o timer. Usado mais pelo auto
+        complete.
+        '''
         # Parar o timer evita q o cursor volte para o campo
         if self.timer.isActive():
             self.timer.stop()
-        #if not self.sender().inherits('QTimer'):
+        # Caso precise identificar o sender algum dia:
+        # self.sender().inherits('QTimer')
         self.savedata(self.live_edit, autocomplete)
         print 'Salvou...'
 
@@ -330,10 +339,14 @@ class MainWindow(QMainWindow):
         mainWidget.selectionModel.clearSelection()
 
     def istab_selected(self, visible):
+        #FIXME Arrumar, faz parte do GeoDock.
         self.emit(SIGNAL('ismapSelected(visible)'), visible)
 
     def copydata(self):
-        '''Copia metadados da entrada selecionada.'''
+        '''Copia metadados da entrada selecionada.
+        
+        Metadados são salvos no objeto self.copied, como lista.
+        '''
         if self.dockEditor.values:
             values = self.dockEditor.values
             self.copied = [value[1] for value in values]
@@ -344,6 +357,11 @@ class MainWindow(QMainWindow):
 
         O primeiro tem prioridade sobre o segundo. Se ele existir, já será
         escolhido.
+
+        Utilizado para decidir qual valor salvar, o emitido pelo autocomplete
+        ou o valor que está no campo. Note que o campo não reconhece quando o
+        valor do autocomplete é completado, por isso essa função existe; talvez
+        seja um bug.
         '''
         if first:
             return first
@@ -351,10 +369,11 @@ class MainWindow(QMainWindow):
             return second
 
     def savedata(self, field, autocomplete):
-        '''Salva valores dos campos para a tabela.
+        '''Salva valor do campo que está sendo editado para a tabela.
         
         Usa o nome do objeto (designado na criação) para identificar o campo
-        que está sendo editado. Apenas este campo será salvo.
+        que está sendo editado. Apenas um campo será salvo (mas pode ser salvo
+        em múltiplas entradas).
         '''
         # Guarda entradas selecionadas para edição múltipla.
         indexes = mainWidget.selectedIndexes()
@@ -451,8 +470,7 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 13, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(
-                            self.choose_one(autocomplete,
+                        QVariant(self.choose_one(autocomplete,
                             self.dockEditor.countryEdit.text())),
                             Qt.EditRole)
         elif field.objectName() == u'Latitude':
@@ -490,7 +508,11 @@ class MainWindow(QMainWindow):
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
     def pastedata(self):
-        '''Cola metadados na(s) entrada(s) selecionada(s).'''
+        '''Cola metadados na(s) entrada(s) selecionada(s).
+        
+        Usa valores guardados no objeto self.copied para colar nas entradas
+        selecionadas.
+        '''
         indexes = mainWidget.selectedIndexes()
         rows = [index.row() for index in indexes]
         rows = list(set(rows))
@@ -562,6 +584,7 @@ class MainWindow(QMainWindow):
                 mainWidget.model.setData(index,
                     QVariant(self.copied[16]), Qt.EditRole)
 
+        # Gambiarra para atualizar os valores da tabela.
         mainWidget.setFocus(Qt.OtherFocusReason)
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
@@ -583,6 +606,8 @@ class MainWindow(QMainWindow):
         Pega a seleção da lista de imagens modificadas e procura a linha
         correspondente na tabela principal. Se o item não for encontrado o item
         na lista é apagado.
+
+        Entrada convertida é adicionada no fim da tabela.
         '''
 
         critical = QMessageBox.critical(self,
@@ -696,7 +721,10 @@ class MainWindow(QMainWindow):
             self.changeStatus(u'Lista de entradas modificadas está vazia')
 
     def writemeta(self, values):
-        '''Grava os metadados no arquivo.'''
+        '''Grava os metadados no arquivo.
+        
+        Valores são salvos de acordo com os respectivos padrões, IPTC e EXIF.
+        '''
         print 'Gravando metadados pelo IPTCinfo...'
         # Criar objeto com metadados
         info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
@@ -1662,8 +1690,7 @@ class DockEditor(QWidget):
         self.hbox = QHBoxLayout()
         self.setLayout(self.hbox)
 
-        # Tagcompleter
-        # Cria instância do autocompletador
+        # Tagcompleter: Cria instância do autocompletador de tags
         self.tageditor = CompleterLineEdit(QLineEdit)
         self.tagcompleter = TagCompleter(self.parent.automodels.tags,
                 self.tageditor)
@@ -1721,23 +1748,29 @@ class DockEditor(QWidget):
 
         self.setMaximumHeight(180)
 
-        self.connect(
-                mainWidget,
+        self.connect(mainWidget,
                 SIGNAL('thisIsCurrent(values)'),
-                self.setcurrent
-                )
+                self.setcurrent)
 
-        self.connect(
-                mainWidget.model,
+        self.connect(mainWidget.model,
                 SIGNAL('dataChanged(index, value, oldvalue)'),
-                self.setsingle
-                )
+                self.setsingle)
 
-        self.connect(
-                options,
+        self.connect(options,
                 SIGNAL('rebuildcomplete(models)'),
-                self.autolistgen
-                )
+                self.autolistgen)
+
+        self.connect(self.tageditor,
+                SIGNAL('text_changed(PyQt_PyObject, PyQt_PyObject)'),
+                self.tagcompleter.update)
+
+        self.connect(self.tagcompleter,
+                SIGNAL('activated(QString)'),
+                self.tageditor.complete_text)
+
+        self.connect(self.tageditor,
+                SIGNAL('tagLive(QString)'),
+                self.parent.finish)
 
     def autolistgen(self, models):
         '''Gera autocompletadores dos campos.'''
