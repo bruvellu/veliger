@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 21 Sep 2010 12:34AM
+# Atualizado: 21 Sep 2010 05:26PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -302,7 +302,7 @@ class MainWindow(QMainWindow):
 
         Chamado antes de iniciar o timer.
         '''
-        if sender.objectName() == u'Tamanho':
+        if sender.objectName() == u'Tamanho' or sender.objectName() == u'Data':
             return True
         elif self.sender().inherits('QCompleter'):
             # Se o objeto for autocomplete, declarar modificado.
@@ -383,10 +383,11 @@ class MainWindow(QMainWindow):
         nrows = len(rows)
 
         # Salva posição do cursor.
-        try:
-            cursor = field.cursorPosition()
-        except:
-            print 'Não capturou cursor...'
+        if not field.objectName() == u'Data':
+            try:
+                cursor = field.cursorPosition()
+            except:
+                print 'Não capturou cursor...'
         
         # Inicia live update da tabela.
         if field.objectName() == u'Título':
@@ -485,10 +486,12 @@ class MainWindow(QMainWindow):
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.long.text()), Qt.EditRole)
         elif field.objectName() == u'Data':
+            current_date = self.dockThumb.dateedit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
             for row in rows:
                 index = mainWidget.model.index(row, 16, QModelIndex())
                 mainWidget.model.setData(index,
-                    QVariant(self.dockThumb.initdate.text()), Qt.EditRole)
+                    QVariant(current_date), Qt.EditRole)
+            self.dockThumb.edited = False
         
         # Salva o current para evitar que volte para 0 após reset()
         oldindex = mainWidget.selectionModel.currentIndex()
@@ -501,10 +504,11 @@ class MainWindow(QMainWindow):
             mainWidget.selectionModel.select(index,
                     QItemSelectionModel.Select)
         # Volta cursor para posição
-        try:
-            field.setCursorPosition(cursor)
-        except:
-            print 'Não deu certo reposicionar o cursor.'
+        if not field.objectName() == u'Data':
+            try:
+                field.setCursorPosition(cursor)
+            except:
+                print 'Não deu certo reposicionar o cursor.'
 
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
 
@@ -2323,12 +2327,32 @@ class DockGeo(QWidget):
         return gps
 
 
+class UserFilter(QObject):
+    '''Filtro para identificar edições do usuário.
+    
+    Intercepta teclas apertadas e botão do meio do mouse e interpreta como
+    edição do usuário; redefine estado do objeto.
+    '''
+    def __init__(self, parent):
+        QObject.__init__(self, parent)
+        self.parent = parent
+
+    def eventFilter(self, object, event):
+        if event.type() == QEvent.KeyPress or event.type() == QEvent.Wheel:
+            self.parent.edited = True
+        else:
+            pass
+        return False
+
+
 class DockThumb(QWidget):
     '''Dock para mostrar o thumbnail da imagem selecionada.'''
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
         self.parent = parent
+
+        self.edited = False
 
         self.setMaximumWidth(300)
 
@@ -2344,14 +2368,22 @@ class DockThumb(QWidget):
         self.filename = QLabel()
         self.timestamp_label = QLabel(u'Timestamp:')
         self.timestamp = QLabel()
-        self.initdate_label = QLabel(u'Data de criação:')
+        self.initdate_label = QLabel(u'Criação:')
         #TODO Substituir por QDateTimeEdit, vai ficar melhor.
         self.initdate = QLineEdit()
-        self.initdate.setObjectName(u'Data')
         self.initdate.setInputMask('9999-99-99 99:99:99;_')
         rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
         date_validator = QRegExpValidator(rx, self)
         self.initdate.setValidator(date_validator)
+
+        # DateTimeEdit
+        self.dateedit = QDateTimeEdit(self)
+        self.dateedit.setDisplayFormat('yyyy-MM-dd hh:mm:ss')
+        self.dateedit.setCalendarPopup(True)
+        self.dateedit.setObjectName(u'Data')
+
+        self.userfilter = UserFilter(self)
+        self.dateedit.installEventFilter(self.userfilter)
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(300)
@@ -2363,6 +2395,7 @@ class DockThumb(QWidget):
         self.infobox.addRow(self.filename_label, self.filename)
         self.infobox.addRow(self.timestamp_label, self.timestamp)
         self.infobox.addRow(self.initdate_label, self.initdate)
+        self.infobox.addRow(self.initdate_label, self.dateedit)
 
         # Widget das informações
         self.fileinfo = QWidget()
@@ -2391,14 +2424,30 @@ class DockThumb(QWidget):
                 self.setsingle)
 
         # Live update
-        self.connect(self.initdate,
-                SIGNAL('textEdited(QString)'),
-                self.parent.runtimer)
+        #self.connect(self.initdate,
+        #        SIGNAL('textEdited(QString)'),
+        #        self.parent.runtimer)
+
+        self.connect(self.dateedit,
+                SIGNAL('dateTimeChanged(QDateTime)'),
+                self.edited_or_not)
+
+    def edited_or_not(self):
+        '''Descobre se o campo foi editado pelo usuário ou não.
+        
+        Desencadeia o processo de salvar caso a mudança tenha se originado do
+        usuário.'''
+        if self.edited:
+            self.parent.runtimer()
+        else:
+            pass
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
         if index.column() == 16:
+            current_date = QDateTime.fromString(value.toString(), 'yyyy-MM-dd hh:mm:ss')
             self.initdate.setText(value.toString())
+            self.dateedit.setDateTime(current_date)
 
     def pixmapcache(self, filepath):
         '''Cria cache para thumbnail.'''
@@ -2420,11 +2469,18 @@ class DockThumb(QWidget):
         Captura sinal com valores, tenta achar imagem no cache e exibe
         informações.
         '''
+        #TODO Criar função pra fazer isso.
+        current_date = QDateTime.fromString(values[16][1], 'yyyy-MM-dd hh:mm:ss')
+        default_date = QDateTime.fromString('2000-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
         if values and values[0][1] != '':
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
             initdate = values[16][1]
             self.initdate.setText(initdate)
+            if current_date.isValid():
+                self.dateedit.setDateTime(current_date)
+            else:
+                self.dateedit.setDateTime(default_date)
             timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
@@ -2434,12 +2490,14 @@ class DockThumb(QWidget):
             self.pic = QPixmap()
             self.filename.clear()
             self.initdate.clear()
+            self.dateedit.setDateTime(default_date)
             self.timestamp.clear()
             self.thumb.clear()
         else:
             self.pic = QPixmap()
             self.filename.clear()
             self.initdate.clear()
+            self.dateedit.setDateTime(default_date)
             self.timestamp.clear()
             self.thumb.clear()
         self.updateThumb()
