@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 21 Sep 2010 05:26PM
+# Atualizado: 21 Sep 2010 06:31PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -486,11 +486,11 @@ class MainWindow(QMainWindow):
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.long.text()), Qt.EditRole)
         elif field.objectName() == u'Data':
-            current_date = self.dockThumb.dateedit.dateTime().toString('yyyy-MM-dd hh:mm:ss')
+            current_date = self.dockThumb.dateedit.dateTime()
             for row in rows:
                 index = mainWidget.model.index(row, 16, QModelIndex())
                 mainWidget.model.setData(index,
-                    QVariant(current_date), Qt.EditRole)
+                    QVariant(self.dockThumb.iodate(current_date)), Qt.EditRole)
             self.dockThumb.edited = False
         
         # Salva o current para evitar que volte para 0 após reset()
@@ -802,7 +802,6 @@ class MainWindow(QMainWindow):
             if values[16]:
                 #TODO Validar valores...
                 print 'Validator'
-                print self.dockThumb.initdate.validator.validate(values[16])
                 print values[16]
                 try:
                     newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
@@ -1980,6 +1979,12 @@ class DockGeo(QWidget):
         self.long.setObjectName(u'Longitude')
         self.updatebutton = QPushButton(u'&Atualizar', self)
 
+        # Mask e validator
+        #self.initdate.setInputMask('9999-99-99 99:99:99;_')
+        #rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
+        #date_validator = QRegExpValidator(rx, self)
+        #self.initdate.setValidator(date_validator)
+
         # Layout do Editor
         self.editbox = QFormLayout()
         self.editbox.addRow(self.lat_label, self.lat)
@@ -2368,18 +2373,10 @@ class DockThumb(QWidget):
         self.filename = QLabel()
         self.timestamp_label = QLabel(u'Timestamp:')
         self.timestamp = QLabel()
-        self.initdate_label = QLabel(u'Criação:')
-        #TODO Substituir por QDateTimeEdit, vai ficar melhor.
-        self.initdate = QLineEdit()
-        self.initdate.setInputMask('9999-99-99 99:99:99;_')
-        rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
-        date_validator = QRegExpValidator(rx, self)
-        self.initdate.setValidator(date_validator)
-
         # DateTimeEdit
+        self.dateedit_label = QLabel(u'Criação:')
         self.dateedit = QDateTimeEdit(self)
         self.dateedit.setDisplayFormat('yyyy-MM-dd hh:mm:ss')
-        self.dateedit.setCalendarPopup(True)
         self.dateedit.setObjectName(u'Data')
 
         self.userfilter = UserFilter(self)
@@ -2394,8 +2391,7 @@ class DockThumb(QWidget):
         self.infobox = QFormLayout()
         self.infobox.addRow(self.filename_label, self.filename)
         self.infobox.addRow(self.timestamp_label, self.timestamp)
-        self.infobox.addRow(self.initdate_label, self.initdate)
-        self.infobox.addRow(self.initdate_label, self.dateedit)
+        self.infobox.addRow(self.dateedit_label, self.dateedit)
 
         # Widget das informações
         self.fileinfo = QWidget()
@@ -2424,10 +2420,6 @@ class DockThumb(QWidget):
                 self.setsingle)
 
         # Live update
-        #self.connect(self.initdate,
-        #        SIGNAL('textEdited(QString)'),
-        #        self.parent.runtimer)
-
         self.connect(self.dateedit,
                 SIGNAL('dateTimeChanged(QDateTime)'),
                 self.edited_or_not)
@@ -2442,12 +2434,33 @@ class DockThumb(QWidget):
         else:
             pass
 
+    def iodate(self, mydate=False):
+        '''Retorna data atual como string ou QDateTime; ou data padrão.
+        
+        Depende do input.
+        '''
+        if mydate:
+            # QVariant.String == 10
+            if isinstance(mydate, str) or QVariant(mydate).type() == 10:
+                current_date = QDateTime.fromString(mydate, 'yyyy-MM-dd hh:mm:ss')
+                return current_date
+            else:
+                current_date = mydate.toString('yyyy-MM-dd hh:mm:ss')
+                return current_date
+        else:
+            default_date = QDateTime.fromString(
+                    '1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
+            return default_date
+
     def setsingle(self, index, value, oldvalue):
-        '''Atualiza campo de edição correspondente quando dado é alterado.'''
+        '''Atualiza campo de edição quando tabela é alterada diretamente.'''
         if index.column() == 16:
             current_date = QDateTime.fromString(value.toString(), 'yyyy-MM-dd hh:mm:ss')
-            self.initdate.setText(value.toString())
-            self.dateedit.setDateTime(current_date)
+            default_date = QDateTime.fromString('1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
+            if value.toString():
+                self.dateedit.setDateTime(self.iodate(value.toString()))
+            else:
+                self.dateedit.setDateTime(self.iodate())
 
     def pixmapcache(self, filepath):
         '''Cria cache para thumbnail.'''
@@ -2471,16 +2484,14 @@ class DockThumb(QWidget):
         '''
         #TODO Criar função pra fazer isso.
         current_date = QDateTime.fromString(values[16][1], 'yyyy-MM-dd hh:mm:ss')
-        default_date = QDateTime.fromString('2000-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
+        default_date = QDateTime.fromString('1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
         if values and values[0][1] != '':
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
-            initdate = values[16][1]
-            self.initdate.setText(initdate)
             if current_date.isValid():
-                self.dateedit.setDateTime(current_date)
+                self.dateedit.setDateTime(self.iodate(values[16][1]))
             else:
-                self.dateedit.setDateTime(default_date)
+                self.dateedit.setDateTime(self.iodate())
             timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
@@ -2489,15 +2500,13 @@ class DockThumb(QWidget):
         elif values and values[0][1] == '':
             self.pic = QPixmap()
             self.filename.clear()
-            self.initdate.clear()
-            self.dateedit.setDateTime(default_date)
+            self.dateedit.setDateTime(self.iodate())
             self.timestamp.clear()
             self.thumb.clear()
         else:
             self.pic = QPixmap()
             self.filename.clear()
-            self.initdate.clear()
-            self.dateedit.setDateTime(default_date)
+            self.dateedit.setDateTime(self.iodate())
             self.timestamp.clear()
             self.thumb.clear()
         self.updateThumb()
