@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 21 Sep 2010 06:31PM
+# Atualizado: 21 Sep 2010 07:09PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -800,36 +800,36 @@ class MainWindow(QMainWindow):
 
             # Data da criação da imagem
             if values[16]:
-                #TODO Validar valores...
-                print 'Validator'
-                print values[16]
                 try:
                     newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
-                    print newdate
                     image['Exif.Photo.DateTimeOriginal'] = newdate
                     image['Exif.Photo.DateTimeDigitized'] = newdate
                     #print image['Exif.Image.DateTime']
                     image.write()
                 except:
-                    print 'Erro na hora de gravar a data.'
+                    print u'Erro na hora de gravar a data.'
             else:
                 try:
                     #TODO Decidir o que fazer aqui... deletar ou passar ''?
-                    print 'Deletando datas de origem...'
+                    # Se nenhum valor estiver definido salvar padrão.
+                    default_date = datetime(1900, 01, 01, 00, 00, 00)
+                    image['Exif.Photo.DateTimeOriginal'] = default_date
+                    image['Exif.Photo.DateTimeDigitized'] = default_date
+                    #print 'Deletando datas de origem...'
                     #image.__delitem__('Exif.Photo.DateTimeOriginal')
                     #image.__delitem__('Exif.Photo.DateTimeDigitized')
                     #print image['Exif.Image.DateTime']
                     image.write()
                 except:
-                    print 'Erro na hora de gravar a data.'
+                    print u'Erro na hora de gravar a data.'
 
-        except IOError:
+        except:
             #FIXME Erro não está aparecendo...
             print '\nOcorreu algum erro. '
             self.changeStatus(u'ERRO!', 10000)
             critical = QMessageBox()
             critical.setWindowTitle(u'Erro!')
-            critical.setText(u'Verifique se o IPTCinfo está bem.')
+            critical.setText(u'Ocorreu algum erro na hora de gravar.')
             critical.setIcon(QMessageBox.Critical)
             critical.exec_()
         else:
@@ -976,7 +976,6 @@ class MainWindow(QMainWindow):
 
         # Extraindo data de criação da foto
         datedate = self.dockGeo.get_date(exif)
-        print datedate
         # Caso o metadado esteja como string, tentar converter em datetime.
         if isinstance(datedate, str):
             try:
@@ -1744,6 +1743,7 @@ class DockEditor(QWidget):
 
     def charlimit(self, field):
         '''Limita número de caracteres de acordo com o IPTC.'''
+        #TODO Talvez não use essa função.
         print 'Limitando...'
         if field == u'Título':
             field.setMaxLength(64)
@@ -2439,17 +2439,24 @@ class DockThumb(QWidget):
         
         Depende do input.
         '''
+        default_date = QDateTime.fromString(
+                '1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
         if mydate:
             # QVariant.String == 10
             if isinstance(mydate, str) or QVariant(mydate).type() == 10:
                 current_date = QDateTime.fromString(mydate, 'yyyy-MM-dd hh:mm:ss')
-                return current_date
+                if current_date.isValid():
+                    return current_date
+                else:
+                    print u'Formato da data inválido! Corrigir.'
+                    #XXX Deixar aviso mais na cara?
+                    self.parent.changeStatus(
+                            u'Formato da data inválido! Corrigir na tabela ou usar o campo de edição.', 8000)
+                    return default_date
             else:
                 current_date = mydate.toString('yyyy-MM-dd hh:mm:ss')
                 return current_date
         else:
-            default_date = QDateTime.fromString(
-                    '1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
             return default_date
 
     def setsingle(self, index, value, oldvalue):
@@ -2482,16 +2489,10 @@ class DockThumb(QWidget):
         Captura sinal com valores, tenta achar imagem no cache e exibe
         informações.
         '''
-        #TODO Criar função pra fazer isso.
-        current_date = QDateTime.fromString(values[16][1], 'yyyy-MM-dd hh:mm:ss')
-        default_date = QDateTime.fromString('1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
         if values and values[0][1] != '':
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
-            if current_date.isValid():
-                self.dateedit.setDateTime(self.iodate(values[16][1]))
-            else:
-                self.dateedit.setDateTime(self.iodate())
+            self.dateedit.setDateTime(self.iodate(values[16][1]))
             timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
