@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Sep 2010 08:35PM
+# Atualizado: 21 Sep 2010 12:34AM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -26,6 +26,7 @@ import subprocess
 import time
 import re
 import pickle
+from datetime import datetime
 
 # Versão 0.2.2
 import pyexiv2
@@ -795,9 +796,15 @@ class MainWindow(QMainWindow):
 
             # Data da criação da imagem
             if values[16]:
+                #TODO Validar valores...
+                print 'Validator'
+                print self.dockThumb.initdate.validator.validate(values[16])
+                print values[16]
                 try:
-                    image['Exif.Photo.DateTimeOriginal'] = values[16]
-                    image['Exif.Photo.DateTimeDigitized'] = values[16]
+                    newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
+                    print newdate
+                    image['Exif.Photo.DateTimeOriginal'] = newdate
+                    image['Exif.Photo.DateTimeDigitized'] = newdate
                     #print image['Exif.Image.DateTime']
                     image.write()
                 except:
@@ -966,10 +973,20 @@ class MainWindow(QMainWindow):
 
         # Extraindo data de criação da foto
         datedate = self.dockGeo.get_date(exif)
-        initdate = datedate.strftime('%Y:%m:%d %H:%M:%S')
+        print datedate
+        # Caso o metadado esteja como string, tentar converter em datetime.
+        if isinstance(datedate, str):
+            try:
+                print 'Data como string, convertendo....'
+                initdate = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
+            except:
+                print 'Algum erro ocorreu na conversão'
+                initdate = ''
+        else:
+            initdate = datedate.strftime('%Y-%m-%d %H:%M:%S')
 
         # Criando timestamp
-        timestamp = time.strftime('%Y:%m:%d %H:%M:%S',
+        timestamp = time.strftime('%Y-%m-%d %H:%M:%S',
                 time.localtime(os.path.getmtime(filepath)))
 
         # Cria a lista para tabela da interface
@@ -1672,6 +1689,10 @@ class DockEditor(QWidget):
                 label.setBuddy(edit)
                 # Dá nome aos objetos, para o live update
                 edit.setObjectName(labels[box_index][var_index])
+                # Coloca limite de caracteres
+                #edit = self.charlimit(edit)
+                #TODO Descobrir se os limites são de verdade...
+                # Função não funciona tem q aplicar direto aqui.
                 if var == 'size':
                     self.connect(edit,
                             SIGNAL('activated(QString)'),
@@ -1680,9 +1701,6 @@ class DockEditor(QWidget):
                     self.connect(edit,
                             SIGNAL('textEdited(QString)'),
                             self.parent.runtimer)
-                    #self.connect(edit,
-                    #        SIGNAL('editingFinished()'),
-                    #        self.parent.finish)
                 if box_index == 0:
                     self.form0.addRow(label, edit)
                 elif box_index == 1:
@@ -1720,6 +1738,33 @@ class DockEditor(QWidget):
         self.connect(self.tageditor,
                 SIGNAL('tagLive(QString)'),
                 self.parent.finish)
+
+    def charlimit(self, field):
+        '''Limita número de caracteres de acordo com o IPTC.'''
+        print 'Limitando...'
+        if field == u'Título':
+            field.setMaxLength(64)
+        elif field == u'Legenda':
+            field.setMaxLength(2000)
+        elif field == u'Táxon':
+            field.setMaxLength(256)
+        elif field == u'Espécie':
+            field.setMaxLength(32)
+        elif field == u'Autor':
+            field.setMaxLength(32)
+        elif field == u'Especialista':
+            field.setMaxLength(32)
+        elif field == u'Direitos':
+            field.setMaxLength(128)
+        elif field == u'Local':
+            field.setMaxLength(32)
+        elif field == u'Cidade':
+            field.setMaxLength(32)
+        elif field == u'Estado':
+            field.setMaxLength(32)
+        elif field == u'País':
+            field.setMaxLength(64)
+        return field
 
     def autolistgen(self, models):
         '''Gera autocompletadores dos campos.'''
@@ -2300,8 +2345,13 @@ class DockThumb(QWidget):
         self.timestamp_label = QLabel(u'Timestamp:')
         self.timestamp = QLabel()
         self.initdate_label = QLabel(u'Data de criação:')
+        #TODO Substituir por QDateTimeEdit, vai ficar melhor.
         self.initdate = QLineEdit()
         self.initdate.setObjectName(u'Data')
+        self.initdate.setInputMask('9999-99-99 99:99:99;_')
+        rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
+        date_validator = QRegExpValidator(rx, self)
+        self.initdate.setValidator(date_validator)
 
         self.thumb.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.thumb.setMaximumWidth(300)
