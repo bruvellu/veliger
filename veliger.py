@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 21 Sep 2010 07:09PM
+# Atualizado: 21 Sep 2010 09:50PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -977,7 +977,7 @@ class MainWindow(QMainWindow):
         # Extraindo data de criação da foto
         datedate = self.dockGeo.get_date(exif)
         # Caso o metadado esteja como string, tentar converter em datetime.
-        if isinstance(datedate, str):
+        if isinstance(datedate, str) or isinstance(datedate, bool):
             try:
                 print 'Data como string, convertendo....'
                 initdate = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
@@ -1980,7 +1980,7 @@ class DockGeo(QWidget):
         self.updatebutton = QPushButton(u'&Atualizar', self)
 
         # Mask e validator
-        #self.initdate.setInputMask('9999-99-99 99:99:99;_')
+        self.lat.setInputMask(u'>A 99°09\'09";_')
         #rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
         #date_validator = QRegExpValidator(rx, self)
         #self.initdate.setValidator(date_validator)
@@ -2050,21 +2050,21 @@ class DockGeo(QWidget):
     def gps_string(self, gps):
         '''Transforma coordenadas extraídas do exif em texto.'''
         dms_str = {}
-        dms_str['lat'] = u'%s %d°%d\'%d"' % (
+        dms_str['lat'] = u'%s %02d°%02d\'%02d"' % (
                 gps['latref'], gps['latdeg'],
                 gps['latmin'], gps['latsec'])
-        dms_str['long'] = u'%s %d°%d\'%d"' % (
+        dms_str['long'] = u'%s %02d°%02d\'%02d"' % (
                 gps['longref'], gps['longdeg'],
                 gps['longmin'], gps['longsec'])
         return dms_str
         
     def setdms(self, dms):
-        '''Atualiza as coordenadas do editor.'''
+        '''Atualiza as coordenadas do editor e da tabela.'''
         dms_str = self.gps_string(dms)
         self.lat.setText(dms_str['lat'])
+        self.parent.savedata(self.lat, '')
         self.long.setText(dms_str['long'])
-        self.parent.savedata(self.lat, True)
-        self.parent.savedata(self.long, True)
+        self.parent.savedata(self.long, '')
 
     def update_geo(self):
         '''Captura as coordenadas do marcador para atualizar o editor.'''
@@ -2072,11 +2072,16 @@ class DockGeo(QWidget):
         mark = self.map.page().mainFrame().evaluateJavaScript(
                 'document.getElementById("markerlocation").value').toString()
         # Transforma a string em lista com floats, limpando os parenteses.
-        marker = str(mark).strip('()').split(', ')
-        decimals = [float(c) for c in marker]
-        # Converte decimal para sistema de coordenadas
-        dms = self.un_decimal(decimals[0], decimals[1])
-        self.setdms(dms)
+        if mark:
+            marker = str(mark).strip('()').split(', ')
+            decimals = [float(c) for c in marker]
+            print decimals
+            # Converte decimal para sistema de coordenadas
+            dms = self.un_decimal(decimals[0], decimals[1])
+            print dms
+            self.setdms(dms)
+        else:
+            print 'Nenhum ponto está marcado no mapa.'
 
     def un_decimal(self, lat, long):
         '''Converte o valor decimal das coordenadas.
@@ -2197,7 +2202,8 @@ class DockGeo(QWidget):
 
     def load_geocode(self, lat, long):
         '''Pega string das coordenadas e chama mapa com as variáveis correspondentes.'''
-        if lat and long:
+        # Se uma coordenada estiver vazia, não carregar.
+        if len(lat) > 4 and len(long) > 4:
             gps = self.string_gps(lat, long)
             # Cria valores decimais das coordenadas
             self.lat_dec = self.get_decimal(
