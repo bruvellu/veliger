@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 21 Sep 2010 09:50PM
+# Atualizado: 21 Sep 2010 10:19PM
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
 Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
@@ -1980,10 +1980,17 @@ class DockGeo(QWidget):
         self.updatebutton = QPushButton(u'&Atualizar', self)
 
         # Mask e validator
-        self.lat.setInputMask(u'>A 99°09\'09";_')
-        #rx = QRegExp('^([1-2])\d\d\d[-](0[1-9]|1[012])[-](0[1-9]|[12][0-9]|3[01])( )(0[1-9]|1[0-9]|2[0-4])[:]([0-5][0-9])[:]([0-5][0-9])$')
-        #date_validator = QRegExpValidator(rx, self)
-        #self.initdate.setValidator(date_validator)
+        #TODO Melhorar as regex...
+        # LAT
+        self.lat.setInputMask(u'>A 99°99\'99";_')
+        lat_rx = QRegExp(u'^[N,S]( )\d\d(°)([0-6][0-9])(\')([0-6][0-9])(")$')
+        lat_validator = QRegExpValidator(lat_rx, self)
+        self.lat.setValidator(lat_validator)
+        # LONG
+        self.long.setInputMask(u'>A 099°99\'99";_')
+        long_rx = QRegExp(u'^[W,E]( )\d?\d\d(°)([0-6][0-9])(\')([0-6][0-9])(")$')
+        long_validator = QRegExpValidator(long_rx, self)
+        self.long.setValidator(long_validator)
 
         # Layout do Editor
         self.editbox = QFormLayout()
@@ -2053,7 +2060,7 @@ class DockGeo(QWidget):
         dms_str['lat'] = u'%s %02d°%02d\'%02d"' % (
                 gps['latref'], gps['latdeg'],
                 gps['latmin'], gps['latsec'])
-        dms_str['long'] = u'%s %02d°%02d\'%02d"' % (
+        dms_str['long'] = u'%s %03d°%02d\'%02d"' % (
                 gps['longref'], gps['longdeg'],
                 gps['longmin'], gps['longsec'])
         return dms_str
@@ -2264,7 +2271,7 @@ class DockGeo(QWidget):
         return result
 
     def setsingle(self, index, value, oldvalue):
-        '''Atualiza campo de edição correspondente quando dado é alterado.'''
+        '''Atualiza campo de edição correspondente quando tabela é alterada.'''
         if index.column() == 14:
             self.lat.setText(value.toString())
         elif index.column() == 15:
@@ -2280,8 +2287,8 @@ class DockGeo(QWidget):
             self.lat.setText(latitude)
             self.long.setText(longitude)
         else:
-            self.lat.clear()
-            self.long.clear()
+            self.lat.setText('')
+            self.long.setText('')
         # Se o dock estiver visível, carregar o mapa.
         if self.ismap_selected:
             self.load_geocode(latitude, longitude)
