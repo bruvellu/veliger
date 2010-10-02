@@ -6,10 +6,11 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 22 Sep 2010 02:08AM
+# Atualizado: 02 Oct 2010 03:05AM
+
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
-Este programa abre imagens JPG, lê seus metadados (IPTC) e fornece uma
+Este programa abre imagens JPG, lê seus metadados (IPTC e EXIF) e fornece uma
 interface para editar estas informações. Os campos foram adaptados para o
 propósito do banco, que é divulgar imagens com conteúdo biológico.
 
