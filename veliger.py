@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 23 Nov 2010 12:58AM
+# Atualizado: 30 Nov 2010 10:21PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -281,12 +281,13 @@ class MainWindow(QMainWindow):
         self.readsettings()
 
         # Conexões
+        #FIXME Nunca funcionou direito...
         self.connect(self.geoDockWidget,
-                SIGNAL('visibilityChanged(bool)'),
+                SIGNAL('visibilityChanged(PyQt_PyObject)'),
                 self.istab_selected)
         
         self.connect(self.dockUnsaved,
-                SIGNAL('syncSelection(filename)'),
+                SIGNAL('syncSelection(PyQt_PyObject)'),
                 self.setselection)
 
         # Live update
@@ -342,7 +343,7 @@ class MainWindow(QMainWindow):
 
     def istab_selected(self, visible):
         #FIXME Arrumar, faz parte do GeoDock.
-        self.emit(SIGNAL('ismapSelected(visible)'), visible)
+        self.emit(SIGNAL('ismapSelected(PyQt_PyObject)'), visible)
 
     def copydata(self):
         '''Copia metadados da entrada selecionada.
@@ -1467,17 +1468,12 @@ class MainTable(QTableView):
                 SIGNAL('currentChanged(QModelIndex, QModelIndex)'),
                 self.changecurrent)
         
-        #TODO Não utilizado. Deletar?
-        self.connect(self.verticalScrollBar(),
-                SIGNAL('valueChanged(int)'),
-                self.outputrows)
-
         self.connect(self.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.editmultiple)
 
         self.connect(self.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.resizecols)
 
     def editmultiple(self, index, value, oldvalue):
@@ -1540,13 +1536,14 @@ class MainTable(QTableView):
 
         Os valores são enviados pelo sinal.
         '''
+        print 'mudou!'
         values = []
         for col in xrange(self.ncols):
             index = self.model.index(current.row(), col, QModelIndex())
             value = self.model.data(index, Qt.DisplayRole)
             values.append((index, value.toString()))
         self.current = values
-        self.emit(SIGNAL('thisIsCurrent(values)'), values)
+        self.emit(SIGNAL('thisIsCurrent(PyQt_PyObject)'), values)
 
 
 class TableModel(QAbstractTableModel):
@@ -1719,15 +1716,15 @@ class DockEditor(QWidget):
         self.setMaximumHeight(180)
 
         self.connect(mainWidget,
-                SIGNAL('thisIsCurrent(values)'),
+                SIGNAL('thisIsCurrent(PyQt_PyObject)'),
                 self.setcurrent)
 
         self.connect(mainWidget.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.setsingle)
 
         self.connect(options,
-                SIGNAL('rebuildcomplete(models)'),
+                SIGNAL('rebuildcomplete(PyQt_PyObject)'),
                 self.autolistgen)
 
         self.connect(self.tageditor,
@@ -2018,15 +2015,16 @@ class DockGeo(QWidget):
                 self.update_geo)
 
         self.connect(mainWidget,
-                SIGNAL('thisIsCurrent(values)'),
+                SIGNAL('thisIsCurrent(PyQt_PyObject)'),
                 self.setcurrent)
 
         self.connect(mainWidget.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.setsingle)
 
+        #FIXME Não está funcionando...
         self.connect(parent,
-                SIGNAL('ismapSelected(visible)'),
+                SIGNAL('ismapSelected(PyQt_PyObject)'),
                 self.state)
 
         # Live update
@@ -2047,6 +2045,7 @@ class DockGeo(QWidget):
         algumas situações.
         '''
         #TODO Tem alguma alternativa para descobrir se a aba está selecionada?
+        print visible
         self.ismap_selected = visible
         try:
             if visible:
@@ -2422,15 +2421,15 @@ class DockThumb(QWidget):
         QPixmapCache.setCacheLimit(81920)
 
         self.connect(mainWidget,
-                SIGNAL('thisIsCurrent(values)'),
+                SIGNAL('thisIsCurrent(PyQt_PyObject)'),
                 self.setcurrent)
 
         self.connect(mainWidget,
-                SIGNAL('visibleRow(filepath)'),
+                SIGNAL('visibleRow(PyQt_PyObject)'),
                 self.pixmapcache)
 
         self.connect(mainWidget.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.setsingle)
 
         # Live update
@@ -2570,7 +2569,7 @@ class DockUnsaved(QWidget):
         self.setLayout(self.vbox)
 
         self.connect(mainWidget.model,
-                SIGNAL('dataChanged(index, value, oldvalue)'),
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.insertentry)
 
         self.connect(self.view.selectionModel,
@@ -2586,7 +2585,7 @@ class DockUnsaved(QWidget):
                 self.clearlist)
 
         self.connect(mainWidget,
-                SIGNAL('delEntry(filename)'),
+                SIGNAL('delEntry(PyQt_PyObject)'),
                 self.delentry)
 
     def sync_setselection(self, selected, deselected):
