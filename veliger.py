@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 01 Dec 2010 11:28AM
+# Atualizado: 01 Dec 2010 12:13PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -963,6 +963,9 @@ class MainWindow(QMainWindow):
         sp = info.data['original transmission reference']   # 103
         scale = info.data['special instructions']           # 40
         source = info.data['source']                        # 115
+        references = info.data['credit']                    # 110
+
+        print '\nREFERENCES: %s' % references
 
         # Extraindo GPS
         exif = self.dockGeo.get_exif(filepath)
@@ -1011,11 +1014,10 @@ class MainWindow(QMainWindow):
                 longitude,
                 initdate,
                 timestamp,
+                references,
                 ]
         if entrymeta[3] != '':
             entrymeta[3] = entrymeta[3] + ', '
-        else:
-            pass
         # Converte valores dos metadados vazios (None) para string em branco
         # FIXME Checar se isso está funcionando direito...
         for index in [index for index, field in enumerate(entrymeta) if \
@@ -1031,6 +1033,7 @@ class MainWindow(QMainWindow):
 
     def createthumbs(self, filepath):
         '''Cria thumbnails para as fotos novas usando o PIL.'''
+        #TODO Criar thumbnails para vídeos também.
         size = 400, 400
         hasdir = os.path.isdir(thumbdir)
         if hasdir is True:
@@ -1443,7 +1446,8 @@ class MainTable(QTableView):
         hh = self.horizontalHeader()
         hh.setStretchLastSection(True)
 
-        self.cols_resized = [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+        self.cols_resized = [1, 4, 5, 6, 7, 8, 9, 10, 11,
+                12, 13, 14, 15, 16, 18]
         for col in self.cols_resized:
             self.resizeColumnToContents(col)
         self.setColumnWidth(1, 250)
@@ -2597,7 +2601,7 @@ class DockUnsaved(QWidget):
             index = indexes[0]
             filename = self.model.data(index, Qt.DisplayRole)
             filename = filename.toString()
-            self.emit(SIGNAL('syncSelection(filename)'), filename)
+            self.emit(SIGNAL('syncSelection(PyQt_PyObject)'), filename)
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
@@ -2719,6 +2723,7 @@ class InitPs():
                 u'Longitude',   #15
                 u'Data',        #16
                 u'Timestamp',   #17
+                u'Referências', #18
                 ]
         
         # Nome do arquivo Pickle para tabela
@@ -2732,7 +2737,7 @@ class InitPs():
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
                     u'', u'', u'', u'', u'',
-                    u'', u'', u'',
+                    u'', u'', u'', u'',
                     ])
         except:
             f = open(tablepickle, 'wb')
@@ -2741,7 +2746,7 @@ class InitPs():
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
-                u'', u'', u'',
+                u'', u'', u'', u'',
                 ],]
         # Nome do arquivo Pickle para lista
         listpickle = '.listcache'
