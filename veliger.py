@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 30 Nov 2010 10:21PM
+# Atualizado: 01 Dec 2010 11:21AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -281,9 +281,8 @@ class MainWindow(QMainWindow):
         self.readsettings()
 
         # Conexões
-        #FIXME Nunca funcionou direito...
         self.connect(self.geoDockWidget,
-                SIGNAL('visibilityChanged(PyQt_PyObject)'),
+                SIGNAL('visibilityChanged(bool)'),
                 self.istab_selected)
         
         self.connect(self.dockUnsaved,
@@ -342,8 +341,7 @@ class MainWindow(QMainWindow):
         mainWidget.selectionModel.clearSelection()
 
     def istab_selected(self, visible):
-        #FIXME Arrumar, faz parte do GeoDock.
-        self.emit(SIGNAL('ismapSelected(PyQt_PyObject)'), visible)
+        self.emit(SIGNAL('mapVisibility(PyQt_PyObject)'), visible)
 
     def copydata(self):
         '''Copia metadados da entrada selecionada.
@@ -1273,7 +1271,7 @@ class PrefsDialog(QDialog):
             models.remove(ex)
         for model in models:
             eval('self.automodels.' + model + '.sort(0)')
-        self.emit(SIGNAL('rebuildcomplete(models)'), self.automodels)
+        self.emit(SIGNAL('rebuildcomplete(PyQt_PyObject)'), self.automodels)
 
 
 class EditCompletion(QWidget):
@@ -1508,7 +1506,7 @@ class MainTable(QTableView):
 
     def emitlost(self, filename):
         '''Emite aviso para remover entrada da lista de modificados.'''
-        self.emit(SIGNAL('delEntry(filename)'), filename)
+        self.emit(SIGNAL('delEntry(PyQt_PyObject)'), filename)
 
     def update_selection(self, selected, deselected):
         '''Pega a entrada selecionada, extrai os valores envia para editor.
@@ -1536,7 +1534,6 @@ class MainTable(QTableView):
 
         Os valores são enviados pelo sinal.
         '''
-        print 'mudou!'
         values = []
         for col in xrange(self.ncols):
             index = self.model.index(current.row(), col, QModelIndex())
@@ -1595,7 +1592,7 @@ class TableModel(QAbstractTableModel):
                         value.toString()).lower()
             else:
                 self.mydata[index.row()][index.column()] = value.toString()
-            self.emit(SIGNAL('dataChanged(index, value, oldvalue)'),
+            self.emit(SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                     index, value, oldvalue)
             return True
         return False
@@ -2022,9 +2019,8 @@ class DockGeo(QWidget):
                 SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.setsingle)
 
-        #FIXME Não está funcionando...
-        self.connect(parent,
-                SIGNAL('ismapSelected(PyQt_PyObject)'),
+        self.connect(self.parent,
+                SIGNAL('mapVisibility(PyQt_PyObject)'),
                 self.state)
 
         # Live update
@@ -2039,20 +2035,23 @@ class DockGeo(QWidget):
     def state(self, visible):
         '''Relata se aba está visível e/ou selecionada.
 
-        Captura sinal emitido pelo mainWidget.
-        
-        Por não distinguir entre visível e aba selecionada não funciona em
-        algumas situações.
+        Captura sinal emitido pelo geoDockWidget. Se estiver visível ou
+        selecionado, carrega mapa usando coordenadas dos campos self.lat e
+        self.long, definidos na função setcurrent.
         '''
-        #TODO Tem alguma alternativa para descobrir se a aba está selecionada?
-        print visible
         self.ismap_selected = visible
+        latitude = self.lat.text()
+        longitude = self.long.text()
+        if latitude.startsWith('N') or latitude.startsWith('S'):
+            lat = True
+        if longitude.startsWith('W') or longitude.startsWith('E'):
+            long = True
         try:
-            if visible:
+            if visible and lat and long:
                 # Se estiver visível, carregar o mapa.
-                self.load_geocode(self.gps)
+                self.load_geocode(latitude, longitude)
         except:
-            pass
+            print 'Não foi possível carregar coordenadas...'
 
     def gps_string(self, gps):
         '''Transforma coordenadas extraídas do exif em texto.'''
@@ -2280,7 +2279,12 @@ class DockGeo(QWidget):
             self.load_geocode(self.lat.text(), self.long.text())
 
     def setcurrent(self, values):
-        '''Mostra geolocalização da imagem selecionada.'''
+        '''Mostra geolocalização da imagem selecionada.
+        
+        Os valores texto devem ser importados mesmo com o widget escondido para
+        serem acessados pela função state. E assim carregar o mapa quando a
+        imagem já estiver selecionada e a aba tornar-se visível.
+        '''
         latitude = values[14][1]
         longitude = values[15][1]
         if latitude and longitude:
@@ -2293,10 +2297,8 @@ class DockGeo(QWidget):
         if self.ismap_selected:
             self.load_geocode(latitude, longitude)
         else:
-            # Possivelmente isso não vai aparecer nunca por causa do
-            # self.state.
-            self.map.setHtml('''<html><head></head><body><h1>Clique na entrada
-                    novamente...</h1></body></html>''')
+            # Só vai aparecer se ocorrer algum erro no load_geocode.
+            self.map.setHtml('''<html><head></head><body><h1>Clique na entrada novamente...</h1></body></html>''')
 
     def string_gps(self, latitude, longitude):
         '''Converte string das coordenadas para dicionário.'''
