@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 01 Dec 2010 12:13PM
+# Atualizado: 01 Dec 2010 01:59PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -40,6 +40,9 @@ from iptcinfo import IPTCInfo
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
+
+# Referências
+from mendeley import Mendeley
 
 # Gerado com: pyrcc4 -o recursos.py recursos.qrc
 import recursos
@@ -93,6 +96,10 @@ class MainWindow(QMainWindow):
                 Qt.TopDockWidgetArea |
                 Qt.BottomDockWidgetArea)
         self.editorDockWidget.setWidget(self.dockEditor)
+        # Dock com lista de referências
+        self.dockRefs = DockRefs(self)
+        self.refsDockWidget = QDockWidget(u'Referências', self)
+        self.refsDockWidget.setWidget(self.dockRefs)
 
         # Timer
         self.timer = QTimer(self)
@@ -213,6 +220,9 @@ class MainWindow(QMainWindow):
         self.toggleUnsaved = self.unsavedDockWidget.toggleViewAction()
         self.toggleUnsaved.setShortcut('Shift+U')
         self.toggleUnsaved.setStatusTip(u'Esconde ou mostra o dock com modificadas')
+        self.toggleRefs = self.refsDockWidget.toggleViewAction()
+        self.toggleRefs.setShortcut('Shift+R')
+        self.toggleRefs.setStatusTip(u'Esconde ou mostra o dock com referências')
 
         # Tabela
         self.clearselection = QAction('Limpar seleção', self)
@@ -268,11 +278,13 @@ class MainWindow(QMainWindow):
 
         # Docks
         self.addDockWidget(Qt.RightDockWidgetArea, self.thumbDockWidget)
-        self.addDockWidget(Qt.BottomDockWidgetArea, self.geoDockWidget)
         self.addDockWidget(Qt.RightDockWidgetArea, self.unsavedDockWidget)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.refsDockWidget)
+        self.addDockWidget(Qt.BottomDockWidgetArea, self.geoDockWidget)
         self.addDockWidget(Qt.BottomDockWidgetArea, self.editorDockWidget)
         self.tabifyDockWidget(self.unsavedDockWidget, self.thumbDockWidget)
-        self.tabifyDockWidget(self.geoDockWidget, self.editorDockWidget)
+        self.tabifyDockWidget(self.refsDockWidget, self.geoDockWidget)
+        self.tabifyDockWidget(self.refsDockWidget, self.editorDockWidget)
         self.setTabPosition(Qt.RightDockWidgetArea | Qt.LeftDockWidgetArea,
                 QTabWidget.North)
         #self.setCorner(Qt.BottomRightCorner, Qt.RightDockWidgetArea)
@@ -746,6 +758,7 @@ class MainWindow(QMainWindow):
             info.data['city'] = values[11]                          # city
             info.data['province/state'] = values[12]                # state
             info.data['country/primary location name'] = values[13] # country
+            info.data['credit'] = values[18]                        # references
 
             # Lista com keywords
             if values[3] == '' or values[3] is None:
@@ -2351,6 +2364,122 @@ class DockGeo(QWidget):
         return gps
 
 
+class DockRefs(QWidget):
+    '''Exibe lista de referências.'''
+    def __init__(self, parent):
+        QWidget.__init__(self, parent)
+
+        self.parent = parent
+
+        self.mylist = refslist
+        #TODO Usar o TableModel instead?
+        self.model = ListModel(self, self.mylist)
+
+        self.view = QListView()
+        self.view.setModel(self.model)
+        self.view.selectionModel = self.view.selectionModel()
+        self.view.setAlternatingRowColors(True)
+
+        self.upbutton = QPushButton(self)
+        self.upbutton.setText(u'&Atualizar')
+
+        self.hbox = QHBoxLayout()
+        self.hbox.addWidget(self.view)
+        self.hbox.addWidget(self.upbutton)
+        self.setLayout(self.hbox)
+
+        self.connect(mainWidget.model,
+                SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
+                self.insertentry)
+
+        self.connect(self.view.selectionModel,
+                SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
+                self.sync_setselection)
+
+        self.connect(self.upbutton,
+                SIGNAL('clicked()'),
+                self.refresh)
+
+        self.connect(mainWidget,
+                SIGNAL('savedToFile()'),
+                self.clearlist)
+
+        self.connect(mainWidget,
+                SIGNAL('delEntry(PyQt_PyObject)'),
+                self.delentry)
+
+    def refresh(self):
+        '''Acessa coleção de referências remota e refaz a lista.'''
+        self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...')
+        mendeley = Mendeley()
+        raw_dic = mendeley.docs_details
+        doc_list = []
+        for k, v in raw_dic.iteritems():
+            citation = u'%s, %s' % (k, v['title'])
+            doc_list.append(citation)
+            print k, v['title']
+        self.clearlist()
+        for citation in doc_list:
+            self.model.insert_rows(0, 1, QModelIndex(), citation)
+        self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.')
+
+    def sync_setselection(self, selected, deselected):
+        '''Sincroniza seleção da tabela com a seleção da lista.'''
+        indexes = selected.indexes()
+        if indexes:
+            index = indexes[0]
+            filename = self.model.data(index, Qt.DisplayRole)
+            filename = filename.toString()
+            self.emit(SIGNAL('syncSelection(PyQt_PyObject)'), filename)
+
+    def insertentry(self, index, value, oldvalue):
+        '''Insere entrada na lista.
+        
+        Checa se a modificação não foi nula (valor atual == valor anterior) e
+        se a entrada é duplicada.
+        '''
+        if value == oldvalue:
+            pass
+        else:
+            index = mainWidget.model.index(index.row(), 0, QModelIndex())
+            filepath = mainWidget.model.data(index, Qt.DisplayRole)
+            filename = os.path.basename(unicode(filepath.toString()))
+            matches = self.matchfinder(filename)
+            if len(matches) == 0:
+                self.model.insert_rows(0, 1, QModelIndex(), filename)
+                self.savebutton.setEnabled(True)
+            else:
+                pass
+
+    def delentry(self, filename):
+        '''Remove entrada da lista.'''
+        matches = self.matchfinder(filename)
+        if len(matches) == 1:
+            match = matches[0]
+            self.model.remove_rows(match.row(), 1, QModelIndex())
+            if not self.model.mylist:
+                self.savebutton.setDisabled(True)
+
+    def clearlist(self):
+        '''Remove todas as entradas da lista.'''
+        rows = self.model.rowCount(self.model)
+        if rows > 0:
+            self.model.remove_rows(0, rows, QModelIndex())
+            self.savebutton.setDisabled(True)
+        else:
+            print 'Nada pra deletar.'
+
+    def matchfinder(self, candidate):
+        '''Buscador de duplicatas.'''
+        index = self.model.index(0, 0, QModelIndex())
+        matches = self.model.match(index, 0, candidate, -1, Qt.MatchExactly)
+        return matches
+
+    def resizeEvent(self, event):
+        '''Lida com redimensionamentos.'''
+        event.accept()
+
+
 class UserFilter(QObject):
     '''Filtro para identificar edições do usuário.
     
@@ -2652,7 +2781,7 @@ class DockUnsaved(QWidget):
 
 
 class ListModel(QAbstractListModel):
-    '''Modelo com lista de imagens modificadas.'''
+    '''Modelo com lista de imagens modificadas e referências.'''
     def __init__(self, parent, list, *args):
         QAbstractListModel.__init__(self, parent, *args)
         self.mylist = list
@@ -2698,6 +2827,7 @@ class InitPs():
         global header
         global datalist
         global updatelist
+        global refslist
         global autolists
         global thumbdir
 
@@ -2748,6 +2878,7 @@ class InitPs():
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'',
                 ],]
+
         # Nome do arquivo Pickle para lista
         listpickle = '.listcache'
         try:
@@ -2758,6 +2889,17 @@ class InitPs():
             f = open(listpickle, 'wb')
             f.close()
             updatelist = []
+
+        # Nome do arquivo Pickle para lista
+        refspickle = '.refscache'
+        try:
+            refscache = open(refspickle, 'rb')
+            refslist = pickle.load(refscache)
+            refscache.close()
+        except:
+            f = open(refspickle, 'wb')
+            f.close()
+            refslist = []
 
         # Nome do arquivo Pickle para autocomplete
         autopickle = '.autocomplete'
