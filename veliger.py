@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 02 Dec 2010 06:31PM
+# Atualizado: 02 Dec 2010 06:46PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1167,7 +1167,6 @@ class MainWindow(QMainWindow):
 
     def createthumbs(self, filepath, type):
         '''Cria thumbnails para as fotos novas usando o PIL.'''
-        #TODO Criar thumbnails para vídeos também.
         hasdir = os.path.isdir(thumbdir)
         if hasdir is True:
             pass
@@ -1191,6 +1190,8 @@ class MainWindow(QMainWindow):
                     print 'Não consegui criar o thumbnail...'
 
             elif type == 'video':
+                #FIXME Tentar descobrir um jeito portável de fazer isso!
+                # PythonMagick talvez?
                 try:
                     # Cria thumb grande a partir de 1 frame no segundo 5
                     subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
