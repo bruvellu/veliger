@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 02 Dec 2010 03:05PM
+# Atualizado: 02 Dec 2010 04:50PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -680,7 +680,7 @@ class MainWindow(QMainWindow):
                             index,
                             QVariant(', '.join(references)),
                             Qt.EditRole)
-
+            mainWidget.setFocus(Qt.OtherFocusReason)
         else:
             self.changeStatus(u'Nenhuma entrada selecionada.', 10000)
 
@@ -943,7 +943,7 @@ class MainWindow(QMainWindow):
         n_dup = 0
 
         # Tupla para o endswith()
-        extensions = ('jpg', 'JPG', 'jpeg', 'JPEG')
+        extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
 
         t0 = time.time()
         
@@ -977,79 +977,88 @@ class MainWindow(QMainWindow):
         '''
         filepath = unicode(filepath)
         filename = os.path.basename(filepath)
-        self.changeStatus(u'Lendo os metadados de %s e criando variáveis...' %
-                filename)
-        # Criar objeto com metadados
-        # force=True permite editar imagem sem IPTC
-        info = IPTCInfo(filepath, force=True, inp_charset=charset)
-        # Checando se o arquivo tem dados IPTC
-        if len(info.data) < 4:
-            print u'%s não tem dados IPTC!' % filename
+        self.changeStatus(u'Lendo os metadados de %s e criando variáveis...' % filename)
+        # Extensões
+        photo_extensions = ('jpg', 'JPG', 'jpeg', 'JPEG')
+        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
 
-        # Definindo as variáveis                            # IPTC
-        title = info.data['object name']                    # 5
-        keywords = info.data['keywords']                    # 25
-        author = info.data['by-line']                       # 80
-        city = info.data['city']                            # 90
-        sublocation = info.data['sub-location']             # 92
-        state = info.data['province/state']                 # 95
-        country = info.data['country/primary location name']# 101
-        category = info.data['headline']                    # 105
-        copyright = info.data['copyright notice']           # 116
-        caption = info.data['caption/abstract']             # 120
-        sp = info.data['original transmission reference']   # 103
-        scale = info.data['special instructions']           # 40
-        source = info.data['source']                        # 115
-        references = info.data['credit']                    # 110
+        if filename.endswith(photo_extensions):
+            # Criar objeto com metadados
+            # force=True permite editar imagem sem IPTC
+            info = IPTCInfo(filepath, force=True, inp_charset=charset)
+            # Checando se o arquivo tem dados IPTC
+            if len(info.data) < 4:
+                print u'%s não tem dados IPTC!' % filename
 
-        # Extraindo GPS
-        exif = self.dockGeo.get_exif(filepath)
-        gps = self.dockGeo.get_gps(exif)
-        if gps:
-            gps_str = self.dockGeo.gps_string(gps)
-            latitude = gps_str['lat']
-            longitude = gps_str['long']
-        else:
-            latitude, longitude = '', ''
+            # Definindo as variáveis                            # IPTC
+            meta = {
+                    'title': info.data['object name'],# 5
+                    'keywords': info.data['keywords'],# 25
+                    'author': info.data['by-line'],# 80
+                    'city': info.data['city'],# 90
+                    'sublocation': info.data['sub-location'],# 92
+                    'state': info.data['province/state'],# 95
+                    'country': info.data['country/primary location name'],# 101
+                    'category': info.data['headline'],# 105
+                    'copyright': info.data['copyright notice'],# 116
+                    'caption': info.data['caption/abstract'],# 120
+                    'sp': info.data['original transmission reference'],# 103
+                    'scale': info.data['special instructions'],# 40
+                    'source': info.data['source'],# 115
+                    'references': info.data['credit'],# 110
+                    }
 
-        # Extraindo data de criação da foto
-        datedate = self.dockGeo.get_date(exif)
-        # Caso o metadado esteja como string, tentar converter em datetime.
-        if isinstance(datedate, str) or isinstance(datedate, bool):
-            try:
-                print 'Data como string, convertendo....'
-                initdate = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
-            except:
-                print 'Algum erro ocorreu na conversão'
-                initdate = ''
-        else:
-            initdate = datedate.strftime('%Y-%m-%d %H:%M:%S')
+            # Extraindo GPS
+            exif = self.dockGeo.get_exif(filepath)
+            gps = self.dockGeo.get_gps(exif)
+            if gps:
+                gps_str = self.dockGeo.gps_string(gps)
+                meta['latitude'] = gps_str['lat']
+                meta['longitude'] = gps_str['long']
+            else:
+                meta['latitude'], meta['longitude'] = '', ''
+
+            # Extraindo data de criação da foto
+            datedate = self.dockGeo.get_date(exif)
+            # Caso o metadado esteja como string, tentar converter em datetime.
+            if isinstance(datedate, str) or isinstance(datedate, bool):
+                try:
+                    print 'Data como string, convertendo....'
+                    meta['initdate'] = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
+                except:
+                    print 'Algum erro ocorreu na conversão'
+                    meta['initdate'] = ''
+            else:
+                meta['initdate'] = datedate.strftime('%Y-%m-%d %H:%M:%S')
+
+        elif filename.endswith(video_extensions):
+            print 'VIDEO'
 
         # Criando timestamp
-        timestamp = time.strftime('%Y-%m-%d %H:%M:%S',
+        meta['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S',
                 time.localtime(os.path.getmtime(filepath)))
 
         # Cria a lista para tabela da interface
         entrymeta = [
                 filepath,
-                title,
-                caption,
-                ', '.join(keywords),
-                category,
-                sp,
-                source,
-                author,
-                copyright,
-                scale,
-                sublocation,
-                city,
-                state,
-                country,
-                latitude,
-                longitude,
-                initdate,
-                timestamp,
-                references,
+                meta['title'],
+                meta['caption'],
+                ', '.join(meta['keywords']),
+                meta['category'],
+                meta['sp'],
+                meta['source'],
+                meta['author'],
+                meta['copyright'],
+                meta['scale'],
+                meta['sublocation'],
+                meta['city'],
+                meta['state'],
+                meta['country'],
+                meta['latitude'],
+                meta['longitude'],
+                meta['initdate'],
+                meta['timestamp'],
+                meta['references'],
                 ]
         if entrymeta[3] != '':
             entrymeta[3] = entrymeta[3] + ', '
