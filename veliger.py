@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 02 Dec 2010 04:50PM
+# Atualizado: 02 Dec 2010 06:24PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -766,113 +766,167 @@ class MainWindow(QMainWindow):
         
         Valores são salvos de acordo com os respectivos padrões, IPTC e EXIF.
         '''
-        print 'Gravando metadados pelo IPTCinfo...'
-        # Criar objeto com metadados
-        info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
-        try:
-            info.data['object name'] = values[1]                    # title
-            info.data['caption/abstract'] = values[2]               # caption
-            info.data['headline'] = values[4]                       # category
-            info.data['original transmission reference'] = values[5]# sp
-            info.data['source'] = values[6]                         # source
-            info.data['by-line'] = values[7]                        # author
-            info.data['copyright notice'] = values[8]               # copyright
-            info.data['special instructions'] = values[9]           # scale
-            info.data['sub-location'] = values[10]                  # sublocation
-            info.data['city'] = values[11]                          # city
-            info.data['province/state'] = values[12]                # state
-            info.data['country/primary location name'] = values[13] # country
-            info.data['credit'] = values[18]                        # references
+        #XXX Organizar essa zona...
+        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
+        if values[0].endswith(video_extensions):
+            try:
+                text_path = values[0].split('.')[0] + '.txt'
+                meta_text = open(text_path, 'wb')
+                print 'Arquivo de info criado!'
 
-            # Lista com keywords
-            if values[3] == '' or values[3] is None:
-                info.keywords = []                                  # keywords
+                meta = {
+                        'title': values[1],
+                        'author': values[7],
+                        'city': values[11],
+                        'sublocation': values[10],
+                        'state': values[12],
+                        'country': values[13],
+                        'category': values[4],
+                        'copyright': values[8],
+                        'caption': values[2],
+                        'sp': values[5],
+                        'size': values[9],
+                        'source': values[6],
+                        'initdate': values[16],
+                        'latitude': values[14],
+                        'longitude': values[15],
+                        'references': values[18],
+                        }
+
+                # Lista com keywords
+                if values[3] == '' or values[3] is None:
+                    meta['keywords'] = []
+                else:
+                    keywords = values[3].split(',')
+                    keywords = [keyword.lower().strip() for keyword in keywords if keyword.strip() != '']
+                    meta['keywords'] = list(set(keywords))
+
+                # Pickle meta 
+                if meta_text:
+                    meta_dic = pickle.dump(meta, meta_text)
+                    meta_text.close()
+            except:
+                #FIXME Erro não está aparecendo...
+                print '\nOcorreu algum erro. '
+                self.changeStatus(u'ERRO!', 10000)
+                critical = QMessageBox()
+                critical.setWindowTitle(u'Erro!')
+                critical.setText(u'Ocorreu algum erro na hora de gravar.')
+                critical.setIcon(QMessageBox.Critical)
+                critical.exec_()
             else:
-                keywords = values[3].split(',')
-                keywords = [keyword.lower().strip() for keyword in keywords if
-                        keyword.strip() != '']
-                info.data['keywords'] = list(set(keywords))         # keywords
-            info.save()
+                # Salva cache
+                self.cachetable()
+                return 0
 
-            # Exif
-            print 'Gravando EXIF...'
-            lat = values[14]
-            long = values[15]
-            image = self.dockGeo.get_exif(values[0])
-            if lat and long:
-                newgps = self.dockGeo.geodict(lat, long)
-                self.changeStatus(u'Gravando novas coordenadas de %s...' %
-                        values[0])
-                try:
-                    image['Exif.GPSInfo.GPSLatitudeRef'] = str(newgps['latref'])
-                    image['Exif.GPSInfo.GPSLatitude'] = (
-                            newgps['latdeg'], newgps['latmin'], newgps['latsec'])
-                    image['Exif.GPSInfo.GPSLongitudeRef'] = str(newgps['longref'])
-                    image['Exif.GPSInfo.GPSLongitude'] = (
-                            newgps['longdeg'], newgps['longmin'], newgps['longsec'])
-                    image.write()
-                    self.changeStatus(
-                            u'Gravando novas coordenadas de %s... pronto!'
-                            % values[0], 5000)
-                except:
-                    self.changeStatus(
-                            u'Gravando novas coordenadas de %s... ERRO OCORREU!'
-                            % values[0], 5000)
-            else:
-                try:
-                    self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
-                            values[0])
-                    image.__delitem__('Exif.GPSInfo.GPSLatitudeRef')
-                    image.__delitem__('Exif.GPSInfo.GPSLatitude')
-                    image.__delitem__('Exif.GPSInfo.GPSLongitudeRef')
-                    image.__delitem__('Exif.GPSInfo.GPSLongitude')
-                    image.write()
-                    self.changeStatus(
-                            u'Deletando o campo Exif.GPSInfo de %s... pronto!'
-                            % values[0], 5000)
-                except:
-                    self.changeStatus(
-                            u'Deletando o campo Exif.GPSInfo de %s... ERRO!'
-                            % values[0], 5000)
-
-            # Data da criação da imagem
-            if values[16]:
-                try:
-                    newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
-                    image['Exif.Photo.DateTimeOriginal'] = newdate
-                    image['Exif.Photo.DateTimeDigitized'] = newdate
-                    #print image['Exif.Image.DateTime']
-                    image.write()
-                except:
-                    print u'Erro na hora de gravar a data.'
-            else:
-                try:
-                    #TODO Decidir o que fazer aqui... deletar ou passar ''?
-                    # Se nenhum valor estiver definido salvar padrão.
-                    default_date = datetime(1900, 01, 01, 00, 00, 00)
-                    image['Exif.Photo.DateTimeOriginal'] = default_date
-                    image['Exif.Photo.DateTimeDigitized'] = default_date
-                    #print 'Deletando datas de origem...'
-                    #image.__delitem__('Exif.Photo.DateTimeOriginal')
-                    #image.__delitem__('Exif.Photo.DateTimeDigitized')
-                    #print image['Exif.Image.DateTime']
-                    image.write()
-                except:
-                    print u'Erro na hora de gravar a data.'
-
-        except:
-            #FIXME Erro não está aparecendo...
-            print '\nOcorreu algum erro. '
-            self.changeStatus(u'ERRO!', 10000)
-            critical = QMessageBox()
-            critical.setWindowTitle(u'Erro!')
-            critical.setText(u'Ocorreu algum erro na hora de gravar.')
-            critical.setIcon(QMessageBox.Critical)
-            critical.exec_()
         else:
-            # Salva cache
-            self.cachetable()
-            return 0
+            print 'Gravando metadados pelo IPTCinfo...'
+            # Criar objeto com metadados
+            info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
+            try:
+                info.data['object name'] = values[1]                    # title
+                info.data['caption/abstract'] = values[2]               # caption
+                info.data['headline'] = values[4]                       # category
+                info.data['original transmission reference'] = values[5]# sp
+                info.data['source'] = values[6]                         # source
+                info.data['by-line'] = values[7]                        # author
+                info.data['copyright notice'] = values[8]               # copyright
+                info.data['special instructions'] = values[9]           # size
+                info.data['sub-location'] = values[10]                  # sublocation
+                info.data['city'] = values[11]                          # city
+                info.data['province/state'] = values[12]                # state
+                info.data['country/primary location name'] = values[13] # country
+                info.data['credit'] = values[18]                        # references
+
+                # Lista com keywords
+                if values[3] == '' or values[3] is None:
+                    info.keywords = []                                  # keywords
+                else:
+                    keywords = values[3].split(',')
+                    keywords = [keyword.lower().strip() for keyword in keywords if
+                            keyword.strip() != '']
+                    info.data['keywords'] = list(set(keywords))         # keywords
+                info.save()
+
+                # Exif
+                print 'Gravando EXIF...'
+                lat = values[14]
+                long = values[15]
+                image = self.dockGeo.get_exif(values[0])
+                if lat and long:
+                    newgps = self.dockGeo.geodict(lat, long)
+                    self.changeStatus(u'Gravando novas coordenadas de %s...' %
+                            values[0])
+                    try:
+                        image['Exif.GPSInfo.GPSLatitudeRef'] = str(newgps['latref'])
+                        image['Exif.GPSInfo.GPSLatitude'] = (
+                                newgps['latdeg'], newgps['latmin'], newgps['latsec'])
+                        image['Exif.GPSInfo.GPSLongitudeRef'] = str(newgps['longref'])
+                        image['Exif.GPSInfo.GPSLongitude'] = (
+                                newgps['longdeg'], newgps['longmin'], newgps['longsec'])
+                        image.write()
+                        self.changeStatus(
+                                u'Gravando novas coordenadas de %s... pronto!'
+                                % values[0], 5000)
+                    except:
+                        self.changeStatus(
+                                u'Gravando novas coordenadas de %s... ERRO OCORREU!'
+                                % values[0], 5000)
+                else:
+                    try:
+                        self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
+                                values[0])
+                        image.__delitem__('Exif.GPSInfo.GPSLatitudeRef')
+                        image.__delitem__('Exif.GPSInfo.GPSLatitude')
+                        image.__delitem__('Exif.GPSInfo.GPSLongitudeRef')
+                        image.__delitem__('Exif.GPSInfo.GPSLongitude')
+                        image.write()
+                        self.changeStatus(
+                                u'Deletando o campo Exif.GPSInfo de %s... pronto!'
+                                % values[0], 5000)
+                    except:
+                        self.changeStatus(
+                                u'Deletando o campo Exif.GPSInfo de %s... ERRO!'
+                                % values[0], 5000)
+
+                # Data da criação da imagem
+                if values[16]:
+                    try:
+                        newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
+                        image['Exif.Photo.DateTimeOriginal'] = newdate
+                        image['Exif.Photo.DateTimeDigitized'] = newdate
+                        #print image['Exif.Image.DateTime']
+                        image.write()
+                    except:
+                        print u'Erro na hora de gravar a data.'
+                else:
+                    try:
+                        #TODO Decidir o que fazer aqui... deletar ou passar ''?
+                        # Se nenhum valor estiver definido salvar padrão.
+                        default_date = datetime(1900, 01, 01, 00, 00, 00)
+                        image['Exif.Photo.DateTimeOriginal'] = default_date
+                        image['Exif.Photo.DateTimeDigitized'] = default_date
+                        #print 'Deletando datas de origem...'
+                        #image.__delitem__('Exif.Photo.DateTimeOriginal')
+                        #image.__delitem__('Exif.Photo.DateTimeDigitized')
+                        #print image['Exif.Image.DateTime']
+                        image.write()
+                    except:
+                        print u'Erro na hora de gravar a data.'
+
+            except:
+                #FIXME Erro não está aparecendo...
+                print '\nOcorreu algum erro. '
+                self.changeStatus(u'ERRO!', 10000)
+                critical = QMessageBox()
+                critical.setWindowTitle(u'Erro!')
+                critical.setText(u'Ocorreu algum erro na hora de gravar.')
+                critical.setIcon(QMessageBox.Critical)
+                critical.exec_()
+            else:
+                # Salva cache
+                self.cachetable()
+                return 0
 
     def changeStatus(self, status, duration=2000):
         '''Muda a mensagem de status da janela principal.'''
@@ -887,8 +941,8 @@ class MainWindow(QMainWindow):
         arquivo).
         '''
         self.openfile = QFileDialog()
-        filepaths = self.openfile.getOpenFileNames(self, 'Selecionar imagem(ns)',
-                self.last_openfile, 'Images (*.jpg *.jpeg *.JPG *.JPEG)')
+        filepaths = self.openfile.getOpenFileNames(self, 'Selecionar arquivo(s)',
+                self.last_openfile, u'Imagens (*.jpg *.jpeg *.JPG *.JPEG);;Vídeos (*.avi *.AVI *.mov *.MOV *.mp4 *.MP4 *.ogg *.OGG *.ogv *.OGV *.dv *.DV *.mpg *.MPG *.mpeg *MPEG *.flv *.FLV')
         if filepaths:
             self.last_openfile = os.path.dirname(unicode(filepaths[0]))
             n_all = len(filepaths)
@@ -982,7 +1036,10 @@ class MainWindow(QMainWindow):
         photo_extensions = ('jpg', 'JPG', 'jpeg', 'JPEG')
         video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
 
+        meta = {}
+
         if filename.endswith(photo_extensions):
+            type = 'photo'
             # Criar objeto com metadados
             # force=True permite editar imagem sem IPTC
             info = IPTCInfo(filepath, force=True, inp_charset=charset)
@@ -1003,7 +1060,7 @@ class MainWindow(QMainWindow):
                     'copyright': info.data['copyright notice'],# 116
                     'caption': info.data['caption/abstract'],# 120
                     'sp': info.data['original transmission reference'],# 103
-                    'scale': info.data['special instructions'],# 40
+                    'size': info.data['special instructions'],# 40
                     'source': info.data['source'],# 115
                     'references': info.data['credit'],# 110
                     }
@@ -1032,7 +1089,40 @@ class MainWindow(QMainWindow):
                 meta['initdate'] = datedate.strftime('%Y-%m-%d %H:%M:%S')
 
         elif filename.endswith(video_extensions):
-            print 'VIDEO'
+            type = 'video'
+            meta = {
+                    'title': u'',
+                    'keywords': u'',
+                    'author': u'',
+                    'city': u'',
+                    'sublocation': u'',
+                    'state': u'',
+                    'country': u'',
+                    'category': u'',
+                    'copyright': u'',
+                    'caption': u'',
+                    'sp': u'',
+                    'size': u'',
+                    'source': u'',
+                    'initdate': '1900-01-01 01:01:01',
+                    'latitude': u'',
+                    'longitude': u'',
+                    'references': u'',
+                    }
+
+            # Verifica se arquivo acessório com meta dos vídeos existe.
+            try:
+                text_path = filepath.split('.')[0] + '.txt'
+                meta_text = open(text_path, 'rb')
+                print 'Arquivo de info existe!'
+            except:
+                meta_text = ''
+
+            if meta_text:
+                meta_dic = pickle.load(meta_text)
+                meta_text.close()
+                # Atualiza meta com valores do arquivo acessório.
+                meta.update(meta_dic)
 
         # Criando timestamp
         meta['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -1049,7 +1139,7 @@ class MainWindow(QMainWindow):
                 meta['source'],
                 meta['author'],
                 meta['copyright'],
-                meta['scale'],
+                meta['size'],
                 meta['sublocation'],
                 meta['city'],
                 meta['state'],
@@ -1071,14 +1161,13 @@ class MainWindow(QMainWindow):
         else:
             pass
 
-        self.createthumbs(filepath)
+        self.createthumbs(filepath, type)
 
         return entrymeta
 
-    def createthumbs(self, filepath):
+    def createthumbs(self, filepath, type):
         '''Cria thumbnails para as fotos novas usando o PIL.'''
         #TODO Criar thumbnails para vídeos também.
-        size = 400, 400
         hasdir = os.path.isdir(thumbdir)
         if hasdir is True:
             pass
@@ -1090,14 +1179,24 @@ class MainWindow(QMainWindow):
         if filename in thumbs:
             pass
         else:
-            copy(filepath, thumbdir)
-            self.changeStatus('%s copiado para %s' % (filename, thumbdir))
-            try:
-                im = Image.open(thumbpath)
-                im.thumbnail(size, Image.ANTIALIAS)
-                im.save(thumbpath, 'JPEG')
-            except IOError:
-                print 'Não consegui criar o thumbnail...'
+            if type == 'photo':
+                size = 400, 400
+                copy(filepath, thumbdir)
+                self.changeStatus('%s copiado para %s' % (filename, thumbdir))
+                try:
+                    im = Image.open(thumbpath)
+                    im.thumbnail(size, Image.ANTIALIAS)
+                    im.save(thumbpath, 'JPEG')
+                except IOError:
+                    print 'Não consegui criar o thumbnail...'
+
+            elif type == 'video':
+                try:
+                    # Cria thumb grande a partir de 1 frame no segundo 5
+                    subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
+                        '-s', '400x300', '-ss', '1', '-f', 'image2', thumbpath])
+                except IOError:
+                    print 'Não consegui criar o thumbnail...'
 
     def matchfinder(self, candidate):
         '''Verifica se entrada já está na tabela.
