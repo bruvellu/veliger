@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 01 Dec 2010 06:21PM
+# Atualizado: 02 Dec 2010 03:05PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -302,8 +302,8 @@ class MainWindow(QMainWindow):
                 self.setselection)
 
         self.connect(self.dockRefs,
-                SIGNAL('syncSelection(PyQt_PyObject)'),
-                self.setselection)
+                SIGNAL('refSync(PyQt_PyObject)'),
+                self.sync_refs)
 
         # Live update
         self.connect(self.timer,
@@ -670,6 +670,20 @@ class MainWindow(QMainWindow):
         else:
             self.changeStatus(u'Nenhuma imagem foi modificada')
 
+    def sync_refs(self, references):
+        '''Sincroniza referências da(s) entrada(s) selecionada(s).'''
+        indexes = mainWidget.selectedIndexes()
+        if indexes:
+            for index in indexes:
+                if index.column() == 18:
+                    mainWidget.model.setData(
+                            index,
+                            QVariant(', '.join(references)),
+                            Qt.EditRole)
+
+        else:
+            self.changeStatus(u'Nenhuma entrada selecionada.', 10000)
+
     def setselection(self, filename):
         '''Sincroniza seleção entre lista e tabela principal.
 
@@ -988,8 +1002,6 @@ class MainWindow(QMainWindow):
         source = info.data['source']                        # 115
         references = info.data['credit']                    # 110
 
-        print '\nREFERENCES: %s' % references
-
         # Extraindo GPS
         exif = self.dockGeo.get_exif(filepath)
         gps = self.dockGeo.get_gps(exif)
@@ -1202,7 +1214,7 @@ class MainWindow(QMainWindow):
         tablecache.close()
         # Tabela referências
         refscache = open(refspickle, 'wb')
-        entries = self.DockRefs.view.model.mydata
+        entries = self.dockRefs.model.mydata
         pickle.dump(entries, refscache)
         refscache.close()
         # Lista
@@ -2428,63 +2440,118 @@ class DockRefs(QWidget):
         self.parent = parent
 
         self.mylist = refslist
-        self.mylist = [[u'1', u'Ano', u'Autores', u'Título', u'Revista',
-                u'Volume', u'Número', u'Páginas'],[u'3', u'Ano', u'Autores', u'Título', u'Revista', u'Volume', u'Número', u'Páginas'],[u'2', u'Ano', u'Autores', u'Título', u'Revista', u'Volume', u'Número', u'Páginas']]
 
-        self.view = RefsTable(self.mylist, self.header)
+        self.view = QTableView()
+        self.model = TableModel(self, self.mylist, self.header)
+
+        self.view.setModel(self.model)
+        self.view.selectionModel = self.view.selectionModel()
+        self.view.selectionModel.clearSelection()
+
+        self.nrows = self.model.rowCount(self.model)
+        self.ncols = self.model.columnCount(self.model)
+
+        vh = self.view.verticalHeader()
+        vh.setVisible(False)
+        hh = self.view.horizontalHeader()
+        hh.setStretchLastSection(True)
+
+        self.view.cols_resized = [0, 1, 2, 4, 5, 6, 7]
+        for col in self.view.cols_resized:
+            self.view.resizeColumnToContents(col)
+        self.view.setColumnWidth(2, 200)
+        self.view.setColumnWidth(3, 250)
+        self.view.setAlternatingRowColors(True)
+        self.view.setSelectionBehavior(self.view.SelectRows)
+        self.view.setSortingEnabled(True)
+        self.selecteditems = []
+
+        # Para limpar entrada dumb na inicialização.
+        #if self.nrows == 1 and self.model.mydata[0][0] == '':
+        #    self.view.model.remove_rows(0, 1, QModelIndex())
+
+        # Usando uma instância própria da view:
+        #self.view = RefsTable(self.mylist, self.header)
         self.view.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-        self.upbutton = QPushButton(self)
-        self.upbutton.setText(u'&Atualizar')
+        self.upbutton = QPushButton(u'&Aplicar', self)
+        self.syncbutton = QPushButton(u'&Mendeley Sync', self)
+
+        self.vbox = QVBoxLayout()
+        self.vbox.addWidget(self.upbutton)
+        self.vbox.addWidget(self.syncbutton)
+        self.buttons = QWidget()
+        self.buttons.setLayout(self.vbox)
+
 
         self.hbox = QHBoxLayout()
         self.hbox.addWidget(self.view)
-        self.hbox.addWidget(self.upbutton)
+        self.hbox.addWidget(self.buttons)
         self.setLayout(self.hbox)
 
-        self.connect(mainWidget,
-                SIGNAL('thisIsCurrent(PyQt_PyObject)'),
-                self.setcurrent)
-
-        self.connect(self.view.selectionModel,
-                SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
-                self.sync_setselection)
+        #FIXME Desabilitado por incompetência.
+        #TODO Implementar atualização automática por seleção.
+        #self.connect(mainWidget,
+        #        SIGNAL('thisIsCurrent(PyQt_PyObject)'),
+        #        self.setcurrent)
+        #
+        #self.connect(self.view.selectionModel,
+        #        SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
+        #        self.sync_setselection)
 
         self.connect(self.upbutton,
+                SIGNAL('clicked()'),
+                self.update)
+
+        self.connect(self.syncbutton,
                 SIGNAL('clicked()'),
                 self.refresh)
 
         self.connect(mainWidget,
-                SIGNAL('savedToFile()'),
-                self.clearlist)
-
-        self.connect(mainWidget,
                 SIGNAL('delEntry(PyQt_PyObject)'),
-                self.delentry)
+                self.lostentry)
 
     def setcurrent(self, values):
         '''Seleciona referências da entrada selecionada.'''
+        #TODO Colocar em prática sync automático.
+        self.view.selectionModel.clearSelection()
         ids = str(values[18][1])
         if ids:
             bibkeys = [key.strip() for key in ids.split(',')]
             print bibkeys
-            index = self.view.model.index(0, 0, QModelIndex())
+            index = self.model.index(0, 0, QModelIndex())
             selected_matches = []
             for bibkey in bibkeys:
-                matches = self.view.model.match(index, 0, bibkey, -1,
+                print 'BIB: %s' % bibkey
+                matches = self.model.match(index, 0, bibkey, -1,
                         Qt.MatchContains)
+                print matches
                 if len(matches) == 1:
                     match = matches[0]
                     selected_matches.append(match)
-                    self.view.selectionModel.select(match,
+            for match in selected_matches:
+                print 'Match %s' % match
+                for x in xrange(self.ncols):
+                    print 'Coluna %s' % x
+                    index = self.model.index(match.row(), x, QModelIndex())
+                    self.view.selectionModel.select(index,
                             QItemSelectionModel.Select)
             #TODO Fazer entradas selecionadas irem para o topo.
             #for index in selected_matches:
             #    reference = self.view.model.data(index, Qt.DisplayRole)
             #    self.view.model.remove_rows(index.row(), 1, QModelIndex())
             #    self.view.model.insert_rows(0, 1, QModelIndex(), reference)
-        else:
-            self.view.selectionModel.clearSelection()
+
+    def update(self):
+        '''Aplica referências selecionadas para as entradas selecionadas.'''
+        indexes = self.view.selectedIndexes()
+        total = []
+        if indexes:
+            for index in indexes:
+                if index.column() == 0:
+                    total.append(str(self.model.data(index,
+                        Qt.DisplayRole).toString()))
+        self.emit(SIGNAL('refSync(PyQt_PyObject)'), total)
 
     def refresh(self):
         '''Acessa coleção de referências remota e refaz a lista.'''
@@ -2492,6 +2559,8 @@ class DockRefs(QWidget):
         mendeley = Mendeley()
         raw_dic = mendeley.docs_details
         doc_list = []
+        #FIXME Checar se cada key existe antes de tentar acessar, para evitar
+        # erros.
         for k, v in raw_dic.iteritems():
             citation = [k, v['year'], ', '.join(v['authors']), v['title'],
                     v['publication_outlet'], v['volume'], v['issue'],
@@ -2500,17 +2569,37 @@ class DockRefs(QWidget):
             print k, v['title']
         self.clearlist()
         for citation in doc_list:
-            self.view.model.insert_rows(0, 1, QModelIndex(), citation)
+            self.model.insert_rows(0, 1, QModelIndex(), citation)
         self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.')
 
     def sync_setselection(self, selected, deselected):
         '''Sincroniza seleção da tabela com a seleção da lista.'''
-        indexes = selected.indexes()
+        #TODO Colocar em prática sync automático.
+        selected_indexes = selected.indexes()
+        deselected_indexes = deselected.indexes()
+        if selected_indexes:
+            for index in selected_indexes:
+                if index.column() == 0:
+                    selection = self.model.data(index, Qt.DisplayRole)
+                    print 'SELECTED: %s' % selection.toString()
+        else:
+            selection = ''
+        if deselected_indexes:
+            for index in deselected_indexes:
+                if index.column() == 0:
+                    deselection = self.model.data(index, Qt.DisplayRole)
+                    print 'DESELECTED: %s' % deselection.toString()
+        else:
+            deselection = ''
+        # Total de entradas selecionadas:
+        indexes = self.view.selectedIndexes()
+        total = []
         if indexes:
-            index = indexes[0]
-            bibkey = self.view.model.data(index, Qt.DisplayRole)
-            print 'Emitindo...'
-            self.emit(SIGNAL('syncSelection(PyQt_PyObject)'), bibkey)
+            for index in indexes:
+                if index.column() == 0:
+                    total.append(str(self.model.data(index,
+                        Qt.DisplayRole).toString()))
+        self.emit(SIGNAL('refSync(PyQt_PyObject)'), total)
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
@@ -2526,29 +2615,30 @@ class DockRefs(QWidget):
             filename = os.path.basename(unicode(filepath.toString()))
             matches = self.matchfinder(filename)
             if len(matches) == 0:
-                self.view.model.insert_rows(0, 1, QModelIndex(), filename)
+                self.model.insert_rows(0, 1, QModelIndex(), filename)
             else:
                 pass
 
-    def delentry(self, filename):
-        '''Remove entrada da lista.'''
-        matches = self.matchfinder(filename)
-        if len(matches) == 1:
-            match = matches[0]
-            self.view.model.remove_rows(match.row(), 1, QModelIndex())
+    def lostentry(self, bibkey):
+        '''Avisa sobre referência perdida.'''
+        print 'Referência não está no banco de dados...'
+        #matches = self.matchfinder(filename)
+        #if len(matches) == 1:
+        #    match = matches[0]
+        #    self.model.remove_rows(match.row(), 1, QModelIndex())
 
     def clearlist(self):
         '''Remove todas as entradas da lista.'''
-        rows = self.view.model.rowCount(self.view.model)
+        rows = self.model.rowCount(self.view.model)
         if rows > 0:
-            self.view.model.remove_rows(0, rows, QModelIndex())
+            self.model.remove_rows(0, rows, QModelIndex())
         else:
             print 'Nada pra deletar.'
 
     def matchfinder(self, candidate):
         '''Buscador de duplicatas.'''
-        index = self.view.model.index(0, 0, QModelIndex())
-        matches = self.view.model.match(index, 0, candidate, -1, Qt.MatchExactly)
+        index = self.model.index(0, 0, QModelIndex())
+        matches = self.model.match(index, 0, candidate, -1, Qt.MatchExactly)
         return matches
 
     def resizeEvent(self, event):
