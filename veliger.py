@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 02 Dec 2010 06:46PM
+# Atualizado: 03 Dec 2010 03:08PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -2295,6 +2295,10 @@ class DockGeo(QWidget):
         <title>Véliger</title>
         <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=pt-BR"></script>
         <script type="text/javascript">
+            if ('ontouchstart' in document.documentElement) {
+                // window.alert("No touch support!");
+                document.documentElement.ontouchstart = null;
+            }
             var map;
             var marker;
             function initialize() {
@@ -2303,7 +2307,14 @@ class DockGeo(QWidget):
                 var myOptions = {
                     zoom: %d,
                     center: local,
-                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                    mapTypeId: google.maps.MapTypeId.ROADMAP,
+                    draggable: true,
+                    keyboardShortcuts: true,
+                    mapTypeControl: true,
+                    navigationControl: true,
+                    scrollwheel: true,
+                    disableDoubleClickZoom: false,
+                    streetViewControl: false,
                 }
 
                 map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
