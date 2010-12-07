@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 03 Dec 2010 03:08PM
+# Atualizado: 07 Dec 2010 04:35PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1068,7 +1068,9 @@ class MainWindow(QMainWindow):
             # Extraindo GPS
             exif = self.dockGeo.get_exif(filepath)
             gps = self.dockGeo.get_gps(exif)
-            if gps:
+            # Testa a integridade do GPS do EXIF olhando o latref.
+            # Se estiver ok, continua. Talvez precise melhorar.
+            if gps['latref']:
                 gps_str = self.dockGeo.gps_string(gps)
                 meta['latitude'] = gps_str['lat']
                 meta['longitude'] = gps_str['long']
