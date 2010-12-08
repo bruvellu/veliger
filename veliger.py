@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 07 Dec 2010 04:35PM
+# Atualizado: 08 Dec 2010 08:32AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -702,7 +702,6 @@ class MainWindow(QMainWindow):
             mainWidget.emitlost(filename)
             self.changeStatus(u'%s não foi encontrada, importe-a novamente' % filename, 10000)
         else:
-            print 'Deu?'
             #FIXME Não está funcionando...
             for match in matches:
                 mainWidget.selectionModel.select(match,
@@ -1070,10 +1069,13 @@ class MainWindow(QMainWindow):
             gps = self.dockGeo.get_gps(exif)
             # Testa a integridade do GPS do EXIF olhando o latref.
             # Se estiver ok, continua. Talvez precise melhorar.
-            if gps['latref']:
-                gps_str = self.dockGeo.gps_string(gps)
-                meta['latitude'] = gps_str['lat']
-                meta['longitude'] = gps_str['long']
+            if gps:
+                if gps['latref']:
+                    gps_str = self.dockGeo.gps_string(gps)
+                    meta['latitude'] = gps_str['lat']
+                    meta['longitude'] = gps_str['long']
+                else:
+                    meta['latitude'], meta['longitude'] = '', ''
             else:
                 meta['latitude'], meta['longitude'] = '', ''
 
@@ -2236,10 +2238,8 @@ class DockGeo(QWidget):
         if mark:
             marker = str(mark).strip('()').split(', ')
             decimals = [float(c) for c in marker]
-            print decimals
             # Converte decimal para sistema de coordenadas
             dms = self.un_decimal(decimals[0], decimals[1])
-            print dms
             self.setdms(dms)
         else:
             print 'Nenhum ponto está marcado no mapa.'
@@ -2295,7 +2295,7 @@ class DockGeo(QWidget):
         <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
         <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
         <title>Véliger</title>
-        <script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false&language=pt-BR"></script>
+        <script type="text/javascript" src="http://maps.google.com/maps/api/js?v=3.1&sensor=false&language=pt-BR"></script>
         <script type="text/javascript">
             if ('ontouchstart' in document.documentElement) {
                 // window.alert("No touch support!");
