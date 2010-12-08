@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 08 Dec 2010 08:32AM
+# Atualizado: 08 Dec 2010 08:34AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -51,7 +51,7 @@ __author__ = 'Bruno Vellutini'
 __copyright__ = 'Copyright 2010, CEBIMar-USP'
 __credits__ = 'Bruno C. Vellutini'
 __license__ = 'DEFINIR'
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __maintainer__ = 'Bruno Vellutini'
 __email__ = 'organelas at gmail dot com'
 __status__ = 'Development'
