@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 08 Dec 2010 11:19AM
+# Atualizado: 08 Dec 2010 11:22AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -2698,8 +2698,6 @@ class DockRefs(QWidget):
             self.clearlist()
             for citation in doc_list:
                 self.model.insert_rows(0, 1, QModelIndex(), citation)
-            #self.view.setFocus(Qt.OtherFocusReason)
-            #self.view.selectionModel.reset()
             self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.', 5000)
         except:
             self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
