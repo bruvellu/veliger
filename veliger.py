@@ -258,6 +258,7 @@ class MainWindow(QMainWindow):
         self.janela.addAction(self.toggleThumb)
         self.janela.addAction(self.toggleGeo)
         self.janela.addAction(self.toggleUnsaved)
+        self.janela.addAction(self.toggleRefs)
 
         # Ajuda
         self.ajuda = self.menubar.addMenu('&Ajuda')
@@ -2208,7 +2209,7 @@ class DockGeo(QWidget):
                 # Se estiver visível, carregar o mapa.
                 self.load_geocode(latitude, longitude)
         except:
-            print 'Não foi possível carregar coordenadas...'
+            print u'Sem GPS.'
 
     def gps_string(self, gps):
         '''Transforma coordenadas extraídas do exif em texto.'''
@@ -2677,22 +2678,27 @@ class DockRefs(QWidget):
 
     def refresh(self):
         '''Acessa coleção de referências remota e refaz a lista.'''
-        self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...')
-        mendeley = Mendeley()
-        raw_dic = mendeley.docs_details
-        doc_list = []
-        #FIXME Checar se cada key existe antes de tentar acessar, para evitar
-        # erros.
-        for k, v in raw_dic.iteritems():
-            citation = [k, v['year'], ', '.join(v['authors']), v['title'],
-                    v['publication_outlet'], v['volume'], v['issue'],
-                    v['pages']]
-            doc_list.append(citation)
-            print k, v['title']
-        self.clearlist()
-        for citation in doc_list:
-            self.model.insert_rows(0, 1, QModelIndex(), citation)
-        self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.')
+        self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...', 5000)
+        try:
+            mendeley = Mendeley()
+            raw_dic = mendeley.docs_details
+            doc_list = []
+            #FIXME Checar se cada key existe antes de tentar acessar, para evitar
+            # erros.
+            for k, v in raw_dic.iteritems():
+                citation = [k, v['year'], ', '.join(v['authors']), v['title'],
+                        v['publication_outlet'], v['volume'], v['issue'],
+                        v['pages']]
+                doc_list.append(citation)
+            print doc_list
+            self.clearlist()
+            for citation in doc_list:
+                self.model.insert_rows(0, 1, QModelIndex(), citation)
+            #self.view.setFocus(Qt.OtherFocusReason)
+            #self.view.selectionModel.reset()
+            self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.', 5000)
+        except:
+            self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
 
     def sync_setselection(self, selected, deselected):
         '''Sincroniza seleção da tabela com a seleção da lista.'''
@@ -3188,7 +3194,10 @@ class InitPs():
         except:
             f = open(refspickle, 'wb')
             f.close()
-            refslist = []
+            refslist = [[
+                u'', u'', u'', u'',
+                u'', u'', u'', u'',
+                ],]
 
         # Nome do arquivo Pickle para autocomplete
         autopickle = '.autocomplete'
