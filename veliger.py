@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 08 Dec 2010 08:34AM
+# Atualizado: 08 Dec 2010 11:19AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -2679,13 +2679,17 @@ class DockRefs(QWidget):
     def refresh(self):
         '''Acessa coleção de referências remota e refaz a lista.'''
         self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...', 5000)
+        keys = ['year', 'authors', 'title', 'publication_outlet', 'volume',
+                'issue', 'pages']
         try:
             mendeley = Mendeley()
             raw_dic = mendeley.docs_details
             doc_list = []
-            #FIXME Checar se cada key existe antes de tentar acessar, para evitar
-            # erros.
             for k, v in raw_dic.iteritems():
+                # Checa se key existe antes para evitar erros.
+                for key in keys:
+                    if not key in v:
+                        v[key] = ''
                 citation = [k, v['year'], ', '.join(v['authors']), v['title'],
                         v['publication_outlet'], v['volume'], v['issue'],
                         v['pages']]
