@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 08 Dec 2010 11:22AM
+# Atualizado: 09 Dec 2010 11:31AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -2684,6 +2684,7 @@ class DockRefs(QWidget):
         try:
             mendeley = Mendeley()
             raw_dic = mendeley.docs_details
+            total = mendeley.total
             doc_list = []
             for k, v in raw_dic.iteritems():
                 # Checa se key existe antes para evitar erros.
@@ -2698,7 +2699,7 @@ class DockRefs(QWidget):
             self.clearlist()
             for citation in doc_list:
                 self.model.insert_rows(0, 1, QModelIndex(), citation)
-            self.parent.changeStatus(u'Lista de referências carregada com sucesso do Mendeley.', 5000)
+            self.parent.changeStatus(u'%s referências carregadas com sucesso do Mendeley.' % total, 5000)
         except:
             self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
 
