@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 10 Dec 2010 10:00AM
+# Atualizado: 10 Dec 2010 02:20PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -781,13 +781,13 @@ class MainWindow(QMainWindow):
                         'sublocation': values[10],
                         'state': values[12],
                         'country': values[13],
-                        'category': values[4],
-                        'copyright': values[8],
+                        'taxon': values[4],
+                        'rights': values[8],
                         'caption': values[2],
-                        'sp': values[5],
+                        'genus_sp': values[5],
                         'size': values[9],
                         'source': values[6],
-                        'initdate': values[16],
+                        'date': values[16],
                         'latitude': values[14],
                         'longitude': values[15],
                         'references': values[18],
@@ -795,11 +795,11 @@ class MainWindow(QMainWindow):
 
                 # Lista com keywords
                 if values[3] == '' or values[3] is None:
-                    meta['keywords'] = []
+                    meta['tags'] = []
                 else:
                     keywords = values[3].split(',')
                     keywords = [keyword.lower().strip() for keyword in keywords if keyword.strip() != '']
-                    meta['keywords'] = list(set(keywords))
+                    meta['tags'] = list(set(keywords))
 
                 # Pickle meta 
                 if meta_text:
@@ -826,11 +826,11 @@ class MainWindow(QMainWindow):
             try:
                 info.data['object name'] = values[1]                    # title
                 info.data['caption/abstract'] = values[2]               # caption
-                info.data['headline'] = values[4]                       # category
-                info.data['original transmission reference'] = values[5]# sp
+                info.data['headline'] = values[4]                       # taxon
+                info.data['original transmission reference'] = values[5]# genus_sp
                 info.data['source'] = values[6]                         # source
                 info.data['by-line'] = values[7]                        # author
-                info.data['copyright notice'] = values[8]               # copyright
+                info.data['copyright notice'] = values[8]               # rights
                 info.data['special instructions'] = values[9]           # size
                 info.data['sub-location'] = values[10]                  # sublocation
                 info.data['city'] = values[11]                          # city
@@ -1050,16 +1050,16 @@ class MainWindow(QMainWindow):
             # Definindo as variáveis                            # IPTC
             meta = {
                     'title': info.data['object name'],# 5
-                    'keywords': info.data['keywords'],# 25
+                    'tags': info.data['keywords'],# 25
                     'author': info.data['by-line'],# 80
                     'city': info.data['city'],# 90
                     'sublocation': info.data['sub-location'],# 92
                     'state': info.data['province/state'],# 95
                     'country': info.data['country/primary location name'],# 101
-                    'category': info.data['headline'],# 105
-                    'copyright': info.data['copyright notice'],# 116
+                    'taxon': info.data['headline'],# 105
+                    'rights': info.data['copyright notice'],# 116
                     'caption': info.data['caption/abstract'],# 120
-                    'sp': info.data['original transmission reference'],# 103
+                    'genus_sp': info.data['original transmission reference'],# 103
                     'size': info.data['special instructions'],# 40
                     'source': info.data['source'],# 115
                     'references': info.data['credit'],# 110
@@ -1086,30 +1086,30 @@ class MainWindow(QMainWindow):
             if isinstance(datedate, str) or isinstance(datedate, bool):
                 try:
                     print 'Data como string, convertendo....'
-                    meta['initdate'] = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
+                    meta['date'] = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
                 except:
                     print 'Algum erro ocorreu na conversão'
-                    meta['initdate'] = ''
+                    meta['date'] = ''
             else:
-                meta['initdate'] = datedate.strftime('%Y-%m-%d %H:%M:%S')
+                meta['date'] = datedate.strftime('%Y-%m-%d %H:%M:%S')
 
         elif filename.endswith(video_extensions):
             type = 'video'
             meta = {
                     'title': u'',
-                    'keywords': u'',
+                    'tags': u'',
                     'author': u'',
                     'city': u'',
                     'sublocation': u'',
                     'state': u'',
                     'country': u'',
-                    'category': u'',
-                    'copyright': u'',
+                    'taxon': u'',
+                    'rights': u'',
                     'caption': u'',
-                    'sp': u'',
+                    'genus_sp': u'',
                     'size': u'',
                     'source': u'',
-                    'initdate': '1900-01-01 01:01:01',
+                    'date': '1900-01-01 01:01:01',
                     'latitude': u'',
                     'longitude': u'',
                     'references': u'',
@@ -1138,12 +1138,12 @@ class MainWindow(QMainWindow):
                 filepath,
                 meta['title'],
                 meta['caption'],
-                ', '.join(meta['keywords']),
-                meta['category'],
-                meta['sp'],
+                ', '.join(meta['tags']),
+                meta['taxon'],
+                meta['genus_sp'],
                 meta['source'],
                 meta['author'],
-                meta['copyright'],
+                meta['rights'],
                 meta['size'],
                 meta['sublocation'],
                 meta['city'],
@@ -1151,7 +1151,7 @@ class MainWindow(QMainWindow):
                 meta['country'],
                 meta['latitude'],
                 meta['longitude'],
-                meta['initdate'],
+                meta['date'],
                 meta['timestamp'],
                 meta['references'],
                 ]
@@ -1784,6 +1784,7 @@ class DockEditor(QWidget):
     def __init__(self, parent):
         QWidget.__init__(self, parent)
 
+        # varnames tem que bater com o varEdits da vida.
         varnames = [
                 ['title', 'caption', 'tags'],
                 ['taxon', 'sp', 'source', 'author', 'rights'],
