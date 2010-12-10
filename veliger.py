@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 09 Dec 2010 11:31AM
+# Atualizado: 09 Dec 2010 06:21PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -2582,8 +2582,8 @@ class DockRefs(QWidget):
         self.view.cols_resized = [0, 1, 2, 4, 5, 6, 7]
         for col in self.view.cols_resized:
             self.view.resizeColumnToContents(col)
-        self.view.setColumnWidth(2, 200)
-        self.view.setColumnWidth(3, 250)
+        self.view.setColumnWidth(2, 300)
+        self.view.setColumnWidth(3, 450)
         self.view.setAlternatingRowColors(True)
         self.view.setSelectionBehavior(self.view.SelectRows)
         self.view.setSortingEnabled(True)
