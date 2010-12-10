@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 09 Dec 2010 06:21PM
+# Atualizado: 10 Dec 2010 10:00AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1191,8 +1191,8 @@ class MainWindow(QMainWindow):
                     im = Image.open(thumbpath)
                     im.thumbnail(size, Image.ANTIALIAS)
                     im.save(thumbpath, 'JPEG')
-                except IOError:
-                    print 'Não consegui criar o thumbnail...'
+                except:
+                    print u'Não consegui criar o thumbnail...'
 
             elif type == 'video':
                 #FIXME Tentar descobrir um jeito portável de fazer isso!
@@ -1201,8 +1201,9 @@ class MainWindow(QMainWindow):
                     # Cria thumb grande a partir de 1 frame no segundo 5
                     subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
                         '-s', '400x300', '-ss', '1', '-f', 'image2', thumbpath])
-                except IOError:
-                    print 'Não consegui criar o thumbnail...'
+                except:
+                    self.changeStatus(u'Não consegui criar o thumbnail...', 10000)
+                    print u'Não consegui criar o thumbnail...'
 
     def matchfinder(self, candidate):
         '''Verifica se entrada já está na tabela.
@@ -1264,9 +1265,7 @@ class MainWindow(QMainWindow):
                     self.changeStatus(u'%d entradas deletadas' % n_del)
                 else:
                     self.changeStatus(
-                            u'Nenhuma entrada apagada, grave as alterações',
-                            10000
-                            )
+                            u'Nenhuma entrada apagada, grave as alterações', 10000)
             else:
                 # Ordem decrescente previne contra o erro 'out of range'
                 # na hora de deletar diversas entradas
