@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 10 Dec 2010 02:20PM
+# Atualizado: 10 Dec 2010 06:27PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -770,7 +770,9 @@ class MainWindow(QMainWindow):
         video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
         if values[0].endswith(video_extensions):
             try:
-                text_path = values[0].split('.')[0] + '.txt'
+                text_name = os.path.basename(values[0])
+                new_name = text_name.split('.')[0] + '.txt'
+                text_path = os.path.join(os.path.dirname(values[0]), new_name)
                 meta_text = open(text_path, 'wb')
                 print 'Arquivo de info criado!'
 
@@ -805,6 +807,8 @@ class MainWindow(QMainWindow):
                 if meta_text:
                     meta_dic = pickle.dump(meta, meta_text)
                     meta_text.close()
+                    # Atualiza timestamp do arquivo, para cifonauta reconhecer.
+                    os.utime(values[0], None)
             except:
                 #FIXME Erro não está aparecendo...
                 print '\nOcorreu algum erro. '
