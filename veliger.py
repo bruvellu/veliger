@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 10 Dec 2010 06:27PM
+# Atualizado: 14 Dec 2010 12:02PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -431,13 +431,13 @@ class MainWindow(QMainWindow):
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.taxonEdit.text())),
                         Qt.EditRole)
-        elif field.objectName() == u'Espécie':
-            for row in rows:
-                index = mainWidget.model.index(row, 5, QModelIndex())
-                mainWidget.model.setData(index,
-                        QVariant(self.choose_one(autocomplete,
-                            self.dockEditor.spEdit.text())),
-                        Qt.EditRole)
+        #elif field.objectName() == u'Espécie':
+        #    for row in rows:
+        #        index = mainWidget.model.index(row, 5, QModelIndex())
+        #        mainWidget.model.setData(index,
+        #                QVariant(self.choose_one(autocomplete,
+        #                    self.dockEditor.spEdit.text())),
+        #                Qt.EditRole)
         elif field.objectName() == u'Especialista':
             for row in rows:
                 index = mainWidget.model.index(row, 6, QModelIndex())
@@ -786,7 +786,7 @@ class MainWindow(QMainWindow):
                         'taxon': values[4],
                         'rights': values[8],
                         'caption': values[2],
-                        'genus_sp': values[5],
+                        #'genus_sp': values[5],
                         'size': values[9],
                         'source': values[6],
                         'date': values[16],
@@ -831,7 +831,7 @@ class MainWindow(QMainWindow):
                 info.data['object name'] = values[1]                    # title
                 info.data['caption/abstract'] = values[2]               # caption
                 info.data['headline'] = values[4]                       # taxon
-                info.data['original transmission reference'] = values[5]# genus_sp
+                #info.data['original transmission reference'] = values[5]# genus_sp
                 info.data['source'] = values[6]                         # source
                 info.data['by-line'] = values[7]                        # author
                 info.data['copyright notice'] = values[8]               # rights
@@ -1442,7 +1442,7 @@ class EditCompletion(QWidget):
         self.lists = [
                 u'Marcadores',
                 u'Taxa',
-                u'Espécies',
+                #u'Espécies',
                 u'Especialistas',
                 u'Autores',
                 u'Direitos',
@@ -1494,8 +1494,8 @@ class EditCompletion(QWidget):
             self.model = self.automodels.tags
         elif modellist == u'Taxa':
             self.model = self.automodels.taxa
-        elif modellist == u'Espécies':
-            self.model = self.automodels.spp
+        #elif modellist == u'Espécies':
+        #    self.model = self.automodels.spp
         elif modellist == u'Especialistas':
             self.model = self.automodels.sources
         elif modellist == u'Autores':
@@ -1531,8 +1531,8 @@ class EditCompletion(QWidget):
             col = 3
         elif current == u'Taxa':
             col = 4
-        elif current == u'Espécies':
-            col = 5
+        #elif current == u'Espécies':
+        #    col = 5
         elif current == u'Especialistas':
             col = 6
         elif current == u'Autores':
@@ -1615,6 +1615,8 @@ class MainTable(QTableView):
         self.setSortingEnabled(True)
         # Esconde nome do arquivo.
         self.hideColumn(0)
+        # Esconde espécie.
+        self.hideColumn(5)
         # Esconde timestamp.
         self.hideColumn(17)
         self.selecteditems = []
@@ -1791,12 +1793,12 @@ class DockEditor(QWidget):
         # varnames tem que bater com o varEdits da vida.
         varnames = [
                 ['title', 'caption', 'tags'],
-                ['taxon', 'sp', 'source', 'author', 'rights'],
+                ['taxon', 'source', 'author', 'rights'],
                 ['size', 'location', 'city', 'state', 'country']
                 ]
         labels = [
                 [u'Título', u'Legenda', u'Marcadores'],
-                [u'Táxon', u'Espécie', u'Especialista', u'Autor', u'Direitos'],
+                [u'Táxon', u'Especialista', u'Autor', u'Direitos'],
                 [u'Tamanho', u'Local', u'Cidade', u'Estado', u'País']
                 ]
         self.sizes = [
@@ -1908,8 +1910,8 @@ class DockEditor(QWidget):
             field.setMaxLength(2000)
         elif field == u'Táxon':
             field.setMaxLength(256)
-        elif field == u'Espécie':
-            field.setMaxLength(32)
+        #elif field == u'Espécie':
+        #    field.setMaxLength(32)
         elif field == u'Autor':
             field.setMaxLength(32)
         elif field == u'Especialista':
@@ -1937,10 +1939,10 @@ class DockEditor(QWidget):
                 self.parent.finish)
         self.taxonEdit.setCompleter(self.completer)
 
-        self.completer = MainCompleter(models.spp, self)
-        self.connect(self.completer, SIGNAL('activated(QString)'),
-                self.parent.finish)
-        self.spEdit.setCompleter(self.completer)
+        #self.completer = MainCompleter(models.spp, self)
+        #self.connect(self.completer, SIGNAL('activated(QString)'),
+        #        self.parent.finish)
+        #self.spEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.sources, self)
         self.connect(self.completer, SIGNAL('activated(QString)'),
@@ -1988,8 +1990,8 @@ class DockEditor(QWidget):
             self.tagsEdit.setText(value.toString())
         elif index.column() == 4:
             self.taxonEdit.setText(value.toString())
-        elif index.column() == 5:
-            self.spEdit.setText(value.toString())
+        #elif index.column() == 5:
+        #    self.spEdit.setText(value.toString())
         elif index.column() == 6:
             self.sourceEdit.setText(value.toString())
         elif index.column() == 7:
@@ -2019,7 +2021,7 @@ class DockEditor(QWidget):
             self.captionEdit.setText(values[2][1])
             self.tagsEdit.setText(values[3][1])
             self.taxonEdit.setText(values[4][1])
-            self.spEdit.setText(values[5][1])
+            #self.spEdit.setText(values[5][1])
             self.sourceEdit.setText(values[6][1])
             self.authorEdit.setText(values[7][1])
             self.rightsEdit.setText(values[8][1])
@@ -3217,7 +3219,7 @@ class InitPs():
             autolists = {
                     'tags': [],
                     'taxa': [],
-                    'spp': [],
+                    #'spp': [],
                     'sources': [],
                     'authors': [],
                     'rights': [],
