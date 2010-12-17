@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Dec 2010 12:44PM
+# Atualizado: 17 Dec 2010 03:25PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1001,7 +1001,7 @@ class MainWindow(QMainWindow):
             self.last_opendir = unicode(folder)
             self.imgfinder(unicode(folder))
 
-    def imgfinder(self, folder):
+    def imgfinder(self, folder, apply_only=False):
         '''Busca recursivamente imagens na pasta selecionada.
         
         É possível definir as extensões a serem procuradas. Quando um arquivo é
@@ -1012,6 +1012,8 @@ class MainWindow(QMainWindow):
         n_new = 0
         n_dup = 0
 
+        applylist = []
+
         # Tupla para o endswith()
         extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
 
@@ -1021,21 +1023,29 @@ class MainWindow(QMainWindow):
         for root, dirs, files in os.walk(folder):
             for filename in files:
                 if filename.endswith(extensions):
-                    matches = self.matchfinder(filename)
-                    if len(matches) == 0:
-                        filepath = os.path.join(root, filename)
-                        entrymeta = self.createmeta(filepath)
-                        self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
-                        n_new += 1
+                    if not apply_only:
+                        matches = self.matchfinder(filename)
+                        if len(matches) == 0:
+                            filepath = os.path.join(root, filename)
+                            entrymeta = self.createmeta(filepath)
+                            self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
+                            n_new += 1
+                        else:
+                            n_dup += 1
+                            pass
+                        n_all += 1
                     else:
-                        n_dup += 1
-                        pass
-                    n_all += 1
+                        filepath = os.path.join(root, filename)
+                        applylist.append(filepath)
+
         else:	# Se o número máximo de imagens for atingido, finalizar
-            t1 = time.time()
-            t = t1 - t0
-            self.changeStatus(u'%d imagens analisadas em %.2f s,' % (n_all, t) +
-                    u' %d novas e %d duplicadas' % (n_new, n_dup), 10000)
+            if not apply_only:
+                t1 = time.time()
+                t = t1 - t0
+                self.changeStatus(u'%d imagens analisadas em %.2f s,' % (n_all, t) +
+                        u' %d novas e %d duplicadas' % (n_new, n_dup), 10000)
+        if apply_only:
+            return applylist
         # Salva cache
         self.cachetable()
             
@@ -1398,10 +1408,107 @@ class RightClickMenu(QMenu):
     def __init__(self, parent):
         QMenu.__init__(self, parent)
 
-        print u'Iniciando o menu...'
+        self.parent = parent
 
         self.apply = QAction(u'Aplicar metadados em pasta', self)
+        self.apply.triggered.connect(self.trial)
         self.addAction(self.apply)
+
+    def trial(self):
+        '''Verifica se apenas uma entrada está selecionada.'''
+        selected = mainWidget.selectionModel.selectedRows()
+        if not selected:
+            warning = QMessageBox()
+            warning.setWindowTitle(u'Nenhuma entrada selecionada')
+            warning.setText(u'Selecione ao menos uma entrada!')
+            warning.setInformativeText(
+                    u'Para aplicar os metadados em uma pasta ao menos uma ' +
+                    u'entrada da tabela principal deve estar selecionada.')
+            warning.setIcon(QMessageBox.Warning) 
+            warning.setStandardButtons(QMessageBox.Ok)
+            warning.exec_()
+        elif len(selected) == 1:
+            values = self.index_to_values(selected[0])
+            self.open(values)
+        else:
+            warning = QMessageBox()
+            warning.setWindowTitle(u'Mais de 1 entrada selecionada')
+            warning.setText(u'Selecione apenas uma entrada!')
+            warning.setInformativeText(
+                    u'Para aplicar os metadados em uma pasta somente uma ' +
+                    u'entrada da tabela principal deve estar selecionada.')
+            warning.setIcon(QMessageBox.Warning) 
+            warning.setStandardButtons(QMessageBox.Ok)
+            warning.exec_()
+
+    def open(self, values):
+        '''Abre janela para selecionar uma pasta.
+        
+        Chama a função para varrer recursivamente a pasta selecionada. Lembra
+        qual foi a última pasta escolhida.
+        '''
+        opendir = QFileDialog()
+        folder = opendir.getExistingDirectory(self,
+                'Selecione uma pasta',
+                self.parent.last_opendir,
+                QFileDialog.ShowDirsOnly)
+        if folder:
+            self.parent.last_opendir = unicode(folder)
+            filepaths = self.parent.imgfinder(unicode(folder), apply_only=True)
+            self.write(values, folder, filepaths)
+
+    def index_to_values(self, rowindex):
+        '''Converte indexes em valores.'''
+        values = []
+        for col in xrange(mainWidget.ncols):
+            index = mainWidget.model.index(rowindex.row(), col, QModelIndex())
+            value = mainWidget.model.data(index, Qt.DisplayRole)
+            values.append(unicode(value.toString()))
+        print values
+        return values
+
+    def write(self, values, folder, filepaths):
+        '''Executa o processo de gravação.'''
+        janela = QMessageBox()
+        janela.setWindowTitle(u'Confirme as informações abaixo')
+        janela.setText(
+                u'%d arquivos serão modificados na pasta %s' % (len(filepaths),
+                    folder))
+        janela.setInformativeText(u'Os metadados abaixo serão gravados nas ' +
+                'imagens selecionadas. Confira antes de continuar.\n' +
+                '\nTítulo:\t\t%s' % values[1] +
+                '\nLegenda:\t\t%s' % values[2] +
+                '\nMarcadores:\t%s' % values[3] +
+                '\nTamanho:\t\t%s' % values[9] +
+                '\nTáxon:\t\t%s' % values[4] +
+                '\nEspecialista:\t%s' % values[6] +
+                '\nAutor:\t\t%s' % values[7] +
+                '\nDireitos:\t\t%s' % values[8] +
+                '\nLocal:\t\t%s' % values[10] +
+                '\nCidade:\t\t%s' % values[11] +
+                '\nEstado:\t\t%s' % values[12] +
+                '\nPaís:\t\t%s' % values[13] +
+                '\nData:\t\t%s' % values[16] +
+                '\nLatitude:\t\t%s' % values[14] +
+                '\nLongitude:\t\t%s' % values[15] +
+                '\nReferências:\t%s' % values[18]
+                )
+        janela.setIcon(QMessageBox.Information) 
+        janela.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        result = janela.exec_()
+        if result == QMessageBox.Ok:
+            yes = 0
+            no = 0
+            for filepath in filepaths:
+                values[0] = filepath
+                wrote = self.parent.writemeta(values)
+                if wrote == 0:
+                    yes += 1
+                    self.parent.changeStatus(u'%s atualizado!' % filepath)
+                else:
+                    print filepath
+                    no += 1
+            self.parent.changeStatus(u'Sucesso! %d arquivos atualizados!' % yes)
 
 
 class ManualDialog(QDialog):
