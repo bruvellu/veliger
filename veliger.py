@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Dec 2010 11:08AM
+# Atualizado: 17 Dec 2010 12:44PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -76,6 +76,9 @@ class MainWindow(QMainWindow):
         self.about = AboutDialog(self)
         # Objeto que guarda valores copiados.
         self.copied = []
+
+        # Right click menu
+        self.rightmenu = RightClickMenu(self)
 
         # Dock com thumbnail
         self.dockThumb = DockThumb(self)
@@ -225,14 +228,14 @@ class MainWindow(QMainWindow):
         self.toggleRefs.setStatusTip(u'Esconde ou mostra o dock com referências')
 
         # Tabela
-        self.clearselection = QAction('Limpar seleção', self)
+        self.clearselection = QAction(u'Limpar seleção', self)
         self.clearselection.setShortcut('Esc')
         self.clearselection.triggered.connect(self.clear)
         self.addAction(self.clearselection)
 
         ## Menu
         # Arquivo
-        self.arquivo = self.menubar.addMenu('&Arquivo')
+        self.arquivo = self.menubar.addMenu(u'&Arquivo')
         self.arquivo.addAction(self.openFile)
         self.arquivo.addAction(self.openDir)
         self.arquivo.addSeparator()
@@ -241,7 +244,7 @@ class MainWindow(QMainWindow):
         self.arquivo.addAction(self.exit)
 
         # Editar
-        self.editar = self.menubar.addMenu('&Editar')
+        self.editar = self.menubar.addMenu(u'&Editar')
         self.editar.addAction(self.delAll)
         self.editar.addSeparator()
         self.editar.addAction(self.copyMeta)
@@ -253,7 +256,7 @@ class MainWindow(QMainWindow):
         self.editar.addAction(self.openPref)
 
         # Janela        
-        self.janela = self.menubar.addMenu('&Janela')
+        self.janela = self.menubar.addMenu(u'&Janela')
         self.janela.addAction(self.toggleEditor)
         self.janela.addAction(self.toggleThumb)
         self.janela.addAction(self.toggleGeo)
@@ -261,19 +264,19 @@ class MainWindow(QMainWindow):
         self.janela.addAction(self.toggleRefs)
 
         # Ajuda
-        self.ajuda = self.menubar.addMenu('&Ajuda')
+        self.ajuda = self.menubar.addMenu(u'&Ajuda')
         self.ajuda.addAction(self.openManual)
         self.ajuda.addSeparator()
         self.ajuda.addAction(self.openAbout)
 
         # Toolbar
-        self.toolbar = self.addToolBar('Ações')
+        self.toolbar = self.addToolBar(u'Ações')
         self.toolbar.addAction(self.openFile)
         self.toolbar.addAction(self.openDir)
         self.toolbar.addAction(self.copyMeta)
         self.toolbar.addAction(self.pasteMeta)
         self.toolbar.addAction(self.delRow)
-        self.toolbar = self.addToolBar('Sair')
+        self.toolbar = self.addToolBar(u'Sair')
         self.toolbar.addAction(self.writeMeta)
         self.toolbar.addAction(self.exit)
 
@@ -310,6 +313,15 @@ class MainWindow(QMainWindow):
         self.connect(self.timer,
                 SIGNAL('timeout()'),
                 self.finish)
+
+        # Context menu 
+        self.connect(mainWidget,
+                SIGNAL('customContextMenuRequested(QPoint)'),
+                self.rightclick)
+
+    def rightclick(self, position):
+        '''Identifica quem está sendo editado.'''
+        self.rightmenu.popup(mainWidget.mapToGlobal(position))
 
     def whoislive(self, sender):
         '''Identifica quem está sendo editado.'''
@@ -1381,6 +1393,17 @@ class MainWindow(QMainWindow):
         #event.accept()
 
 
+class RightClickMenu(QMenu):
+    '''Menu que aparece com o botão direito.'''
+    def __init__(self, parent):
+        QMenu.__init__(self, parent)
+
+        print u'Iniciando o menu...'
+
+        self.apply = QAction(u'Aplicar metadados em pasta', self)
+        self.addAction(self.apply)
+
+
 class ManualDialog(QDialog):
     '''Janela do manual de instruções.'''
     def __init__(self, parent):
@@ -1620,6 +1643,9 @@ class MainTable(QTableView):
         # Esconde timestamp.
         self.hideColumn(17)
         self.selecteditems = []
+
+        # Right click
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
 
         # Para limpar entrada dumb na inicialização.
         if self.nrows == 1 and self.mydata[0][0] == '':
