@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 14 Dec 2010 12:02PM
+# Atualizado: 17 Dec 2010 11:08AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1792,14 +1792,14 @@ class DockEditor(QWidget):
 
         # varnames tem que bater com o varEdits da vida.
         varnames = [
-                ['title', 'caption', 'tags'],
+                ['title', 'caption', 'tags', 'size'],
                 ['taxon', 'source', 'author', 'rights'],
-                ['size', 'location', 'city', 'state', 'country']
+                ['location', 'city', 'state', 'country']
                 ]
         labels = [
-                [u'Título', u'Legenda', u'Marcadores'],
+                [u'Título', u'Legenda', u'Marcadores', u'Tamanho'],
                 [u'Táxon', u'Especialista', u'Autor', u'Direitos'],
-                [u'Tamanho', u'Local', u'Cidade', u'Estado', u'País']
+                [u'Local', u'Cidade', u'Estado', u'País']
                 ]
         self.sizes = [
                 '',
@@ -1874,7 +1874,7 @@ class DockEditor(QWidget):
         # Inicia valores para o autocomplete
         self.autolistgen(parent.automodels)
 
-        self.setMaximumHeight(180)
+        self.setMaximumHeight(150)
 
         self.connect(mainWidget,
                 SIGNAL('thisIsCurrent(PyQt_PyObject)'),
