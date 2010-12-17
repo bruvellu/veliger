@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Dec 2010 03:37PM
+# Atualizado: 17 Dec 2010 03:44PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -1464,7 +1464,6 @@ class RightClickMenu(QMenu):
             index = mainWidget.model.index(rowindex.row(), col, QModelIndex())
             value = mainWidget.model.data(index, Qt.DisplayRole)
             values.append(unicode(value.toString()))
-        print values
         return values
 
     def write(self, values, folder, filepaths):
