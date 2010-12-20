@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 17 Dec 2010 03:44PM
+# Atualizado: 20 Dec 2010 05:28PM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -779,7 +779,9 @@ class MainWindow(QMainWindow):
         Valores são salvos de acordo com os respectivos padrões, IPTC e EXIF.
         '''
         #XXX Organizar essa zona...
-        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
+        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg',
+                'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG',
+                'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 'WMV')
         if values[0].endswith(video_extensions):
             try:
                 text_name = os.path.basename(values[0])
@@ -1060,7 +1062,7 @@ class MainWindow(QMainWindow):
         self.changeStatus(u'Lendo os metadados de %s e criando variáveis...' % filename)
         # Extensões
         photo_extensions = ('jpg', 'JPG', 'jpeg', 'JPEG')
-        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
+        video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 'WMV')
 
         meta = {}
 
