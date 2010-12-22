@@ -6,7 +6,7 @@
 # 
 #TODO Definir licença.
 #
-# Atualizado: 20 Dec 2010 05:28PM
+# Atualizado: 22 Dec 2010 12:57AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -959,8 +959,9 @@ class MainWindow(QMainWindow):
         arquivo).
         '''
         self.openfile = QFileDialog()
-        filepaths = self.openfile.getOpenFileNames(self, 'Selecionar arquivo(s)',
-                self.last_openfile, u'Imagens (*.jpg *.jpeg *.JPG *.JPEG);;Vídeos (*.avi *.AVI *.mov *.MOV *.mp4 *.MP4 *.ogg *.OGG *.ogv *.OGV *.dv *.DV *.mpg *.MPG *.mpeg *MPEG *.flv *.FLV')
+        filepaths = self.openfile.getOpenFileNames(self,
+                'Selecionar arquivo(s)',
+                self.last_openfile, u'Imagens (*.jpg *.jpeg *.JPG *.JPEG);;Vídeos (*.avi *.AVI *.mov *.MOV *.mp4 *.MP4 *.ogg *.OGG *.ogv *.OGV *.dv *.DV *.mpg *.MPG *.mpeg *MPEG *.flv *.FLV *.wmv *.WMV *.m2ts *.M2TS')
         if filepaths:
             self.last_openfile = os.path.dirname(unicode(filepaths[0]))
             n_all = len(filepaths)
@@ -1227,8 +1228,9 @@ class MainWindow(QMainWindow):
                 # PythonMagick talvez?
                 try:
                     # Cria thumb grande a partir de 1 frame no segundo 5
+                    #FIXME Proporção dos vídeos HDs saem errada.
                     subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
-                        '-s', '400x300', '-ss', '1', '-f', 'image2', thumbpath])
+                        '-vf', 'scale=400:-1', '-ss', '1', '-f', 'image2', thumbpath])
                 except:
                     self.changeStatus(u'Não consegui criar o thumbnail...', 10000)
                     print u'Não consegui criar o thumbnail...'
