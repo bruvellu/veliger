@@ -2363,7 +2363,7 @@ class DockGeo(QWidget):
                 gps['longref'], gps['longdeg'],
                 gps['longmin'], gps['longsec'])
         return dms_str
-        
+
     def setdms(self, dms):
         '''Atualiza as coordenadas do editor e da tabela.'''
         dms_str = self.gps_string(dms)
@@ -2533,23 +2533,23 @@ class DockGeo(QWidget):
             self.write_html(unset=1, zoom=1)
 
     def get_exif(self, filepath):
-        '''Extrai o exif da imagem selecionada usando o pyexiv2 0.2.2.'''
+        '''Extrai o exif da imagem selecionada usando o pyexiv2 0.3.0.'''
         exif_meta = pyexiv2.ImageMetadata(unicode(filepath))
         exif_meta.read()
         return exif_meta
-    
+
     def get_gps(self, exif_meta):
         '''Extrai gps do exif.'''
         gps = {}
         try:
             gps['latref'] = exif_meta['Exif.GPSInfo.GPSLatitudeRef'].value
-            gps['latdeg'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLatitude'].value[0])
-            gps['latmin'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLatitude'].value[1])
-            gps['latsec'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLatitude'].value[2])
+            gps['latdeg'] = exif_meta['Exif.GPSInfo.GPSLatitude'].value[0]
+            gps['latmin'] = exif_meta['Exif.GPSInfo.GPSLatitude'].value[1]
+            gps['latsec'] = exif_meta['Exif.GPSInfo.GPSLatitude'].value[2]
             gps['longref'] = exif_meta['Exif.GPSInfo.GPSLongitudeRef'].value
-            gps['longdeg'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLongitude'].value[0])
-            gps['longmin'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLongitude'].value[1])
-            gps['longsec'] = self.resolve(exif_meta['Exif.GPSInfo.GPSLongitude'].value[2])
+            gps['longdeg'] = exif_meta['Exif.GPSInfo.GPSLongitude'].value[0]
+            gps['longmin'] = exif_meta['Exif.GPSInfo.GPSLongitude'].value[1]
+            gps['longsec'] = exif_meta['Exif.GPSInfo.GPSLongitude'].value[2]
             return gps
         except:
             return gps
