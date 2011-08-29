@@ -3,10 +3,9 @@
 #
 # VÉLIGER
 # Copyleft 2010 - Bruno C. Vellutini | organelas.com
-# 
+#
 #TODO Definir licença.
 #
-# Atualizado: 22 Dec 2010 12:57AM
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
 
@@ -20,40 +19,35 @@ autor, direitos, tamanho, local, cidade, estado e país.
 Centro de Biologia Marinha da Universidade de São Paulo.
 '''
 
-import os
-import sys
 import operator
+import os
+import pickle
+import pyexiv2 # Versão 0.3.0
+import re
+import sys
 import subprocess
 import time
-import re
-import pickle
 from datetime import datetime
-
-# Versão 0.2.2
-import pyexiv2
-
 from PIL import Image
 from shutil import copy
-# Ver iptcinfo.py
-from iptcinfo import IPTCInfo
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 
-# Referências
-from mendeley import Mendeley
+from mendeley import Mendeley # Referências
+from iptcinfo import IPTCInfo # iptcinfo.py
 
 # Gerado com: pyrcc4 -o recursos.py recursos.qrc
 import recursos
 
 __author__ = 'Bruno Vellutini'
-__copyright__ = 'Copyright 2010, CEBIMar-USP'
+__copyright__ = 'Copyright 2010, CEBIMar/USP'
 __credits__ = 'Bruno C. Vellutini'
 __license__ = 'DEFINIR'
-__version__ = '0.9.3'
+__version__ = '0.9.5'
 __maintainer__ = 'Bruno Vellutini'
-__email__ = 'organelas at gmail dot com'
+__email__ = 'organelas@gmail.com'
 __status__ = 'Development'
 
 
@@ -1252,7 +1246,7 @@ class MainWindow(QMainWindow):
 
     def delcurrent(self):
         '''Deleta a(s) entrada(s) selecionada(s) da tabela.
-        
+
         Verifica se a entrada a ser deletada está na lista de imagens
         modificadas. Se estiver, chama janela para o usuário decidir se quer
         apagar a entrada mesmo sem as modificações terem sido gravadas na
@@ -1344,7 +1338,7 @@ class MainWindow(QMainWindow):
 
     def cachetable(self):
         '''Salva estado atual dos dados em arquivos externos.
-        
+
         Cria backup dos conteúdos da tabela e da lista de imagens modificadas.
         '''
         #TODO Integrar com QSettings()?
@@ -1428,7 +1422,7 @@ class RightClickMenu(QMenu):
             warning.setInformativeText(
                     u'Para aplicar os metadados em uma pasta ao menos uma ' +
                     u'entrada da tabela principal deve estar selecionada.')
-            warning.setIcon(QMessageBox.Warning) 
+            warning.setIcon(QMessageBox.Warning)
             warning.setStandardButtons(QMessageBox.Ok)
             warning.exec_()
         elif len(selected) == 1:
@@ -1447,7 +1441,7 @@ class RightClickMenu(QMenu):
 
     def open(self, values):
         '''Abre janela para selecionar uma pasta.
-        
+
         Chama a função para varrer recursivamente a pasta selecionada. Lembra
         qual foi a última pasta escolhida.
         '''
@@ -1648,7 +1642,7 @@ class EditCompletion(QWidget):
     def insertrow(self):
         '''Insere linha no modelo.'''
         self.model.insertRows(0, 1, QModelIndex())
-        
+
     def removerow(self):
         '''Remove linha do modelo.'''
         indexes = self.view.selectedIndexes()
@@ -1764,7 +1758,7 @@ class MainTable(QTableView):
         self.connect(self.selectionModel,
                 SIGNAL('currentChanged(QModelIndex, QModelIndex)'),
                 self.changecurrent)
-        
+
         self.connect(self.model,
                 SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.editmultiple)
@@ -1868,7 +1862,7 @@ class TableModel(QAbstractTableModel):
                 role != Qt.BackgroundRole:
             return QVariant()
         return QVariant(self.mydata[index.row()][index.column()])
-        
+
     def headerData(self, col, orientation, role):
         '''Constrói cabeçalho da tabela.'''
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:
@@ -1895,7 +1889,7 @@ class TableModel(QAbstractTableModel):
                     index, value, oldvalue)
             return True
         return False
-    
+
     def sort(self, col, order):
         '''Ordena entradas a partir de valores de determinada coluna'''
         self.emit(SIGNAL('layoutAboutToBeChanged()'))
@@ -2264,7 +2258,7 @@ class DockGeo(QWidget):
 
         # Layout do dock
         self.hbox = QHBoxLayout()
-        
+
         # Editor
         self.lat_label = QLabel(u'Latitude:')
         self.lat = QLineEdit()
@@ -2301,7 +2295,7 @@ class DockGeo(QWidget):
         # Tamanhos
         self.geolocation.setFixedWidth(200)
         self.map.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        
+
         # Layout do Dock
         self.hbox.addWidget(self.geolocation)
         self.hbox.addWidget(self.map)
@@ -2389,7 +2383,7 @@ class DockGeo(QWidget):
 
     def un_decimal(self, lat, long):
         '''Converte o valor decimal das coordenadas.
-        
+
         Retorna dicionário com referência cardinal, graus, minutos e segundos.
         '''
         # Latitude
@@ -2463,7 +2457,7 @@ class DockGeo(QWidget):
                 }
 
                 map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-                    
+
                 if (unset == 0) {
                     var marker = new google.maps.Marker({
                         position: local,
@@ -2484,7 +2478,7 @@ class DockGeo(QWidget):
                     map.setCenter(marker.position);
                 });
             }
-            
+
             function placeMarker(location) {
                 var clickedLocation = new google.maps.LatLng(location);
 
@@ -2493,8 +2487,9 @@ class DockGeo(QWidget):
                     map: map,
                     draggable: true,
                 });
-                
-                document.getElementById("markerlocation").value = marker.position;
+
+                document.getElementById("markerlocation").value = 
+                marker.position;
 
                 map.setCenter(location);
                 map.setZoom(5);
@@ -2589,7 +2584,7 @@ class DockGeo(QWidget):
 
     def setcurrent(self, values):
         '''Mostra geolocalização da imagem selecionada.
-        
+
         Os valores texto devem ser importados mesmo com o widget escondido para
         serem acessados pela função state. E assim carregar o mapa quando a
         imagem já estiver selecionada e a aba tornar-se visível.
@@ -2637,7 +2632,7 @@ class DockGeo(QWidget):
 
     def geodict(self, latitude, longitude):
         '''Extrai coordenadas da string do editor.
-        
+
         Transforma string em dicionário para ser gravado na imagem. Exif aceita
         os valores numéricos apenas como razões.'''
         # Utiliza expressões regulares.
@@ -2876,7 +2871,7 @@ class DockRefs(QWidget):
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
-        
+
         Checa se a modificação não foi nula (valor atual == valor anterior) e
         se a entrada é duplicada.
         '''
@@ -2921,7 +2916,7 @@ class DockRefs(QWidget):
 
 class UserFilter(QObject):
     '''Filtro para identificar edições do usuário.
-    
+
     Intercepta teclas apertadas e botão do meio do mouse e interpreta como
     edição do usuário; redefine estado do objeto.
     '''
@@ -2983,7 +2978,7 @@ class DockThumb(QWidget):
         # Widget das informações
         self.fileinfo = QWidget()
         self.fileinfo.setLayout(self.infobox)
-        
+
         # Adicionando widgets ao dock
         self.vbox.addWidget(self.thumb)
         self.vbox.addWidget(self.fileinfo)
@@ -3013,7 +3008,7 @@ class DockThumb(QWidget):
 
     def edited_or_not(self):
         '''Descobre se o campo foi editado pelo usuário ou não.
-        
+
         Desencadeia o processo de salvar caso a mudança tenha se originado do
         usuário.'''
         if self.edited:
@@ -3023,7 +3018,7 @@ class DockThumb(QWidget):
 
     def iodate(self, mydate=False):
         '''Retorna data atual como string ou QDateTime; ou data padrão.
-        
+
         Depende do input.
         '''
         default_date = QDateTime.fromString(
@@ -3069,7 +3064,7 @@ class DockThumb(QWidget):
         else:
             pass
         return self.pic
-    
+
     def setcurrent(self, values):
         '''Mostra thumbnail, nome e data de modificação da imagem.
 
@@ -3173,7 +3168,7 @@ class DockUnsaved(QWidget):
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
-        
+
         Checa se a modificação não foi nula (valor atual == valor anterior) e
         se a entrada é duplicada.
         '''
@@ -3272,7 +3267,7 @@ class InitPs():
         global thumbdir
 
         thumbdir = 'thumbs'
-        
+
         # Cabeçalho horizontal da tabela principal
         header = [
                 u'Arquivo',     #0
@@ -3295,7 +3290,7 @@ class InitPs():
                 u'Timestamp',   #17
                 u'Referências', #18
                 ]
-        
+
         # Nome do arquivo Pickle para tabela
         tablepickle = '.tablecache'
         try:
@@ -3364,7 +3359,7 @@ class InitPs():
                     'states': [],
                     'countries': [],
                     }
-            pickle.dump(autolists, f)                    
+            pickle.dump(autolists, f)
             f.close()
 
 if __name__ == '__main__':
