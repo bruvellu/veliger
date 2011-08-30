@@ -420,7 +420,7 @@ class MainWindow(QMainWindow):
             try:
                 cursor = field.cursorPosition()
             except:
-                print 'Não capturou cursor...'
+                logger.debug('Não capturou cursor...')
 
         # Inicia live update da tabela.
         if field.objectName() == u'Título':
@@ -537,8 +537,8 @@ class MainWindow(QMainWindow):
             except:
                 logger.debug('Não deu certo reposicionar o cursor.')
 
-        self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
-        logger.debug('%d entradas alteradas!', nrows)
+        self.changeStatus(u'%d entrada(s) alterada(s)!' % nrows, 5000)
+        logger.debug('%d entrada(s) alterada(s)!', nrows)
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).
@@ -2613,13 +2613,8 @@ class DockGeo(QWidget):
 
     def string_gps(self, latitude, longitude):
         '''Converte string das coordenadas para dicionário.'''
-        print 'GPS'
-        print latitude
-        print longitude
         lat = re.findall('\w+', latitude)
         long = re.findall('\w+', longitude)
-        print lat
-        print long
         gps = {
                 'latref': lat[0],
                 'latdeg': int(lat[1]),
@@ -2761,16 +2756,6 @@ class DockRefs(QWidget):
         self.hbox.addWidget(self.buttons)
         self.setLayout(self.hbox)
 
-        #FIXME Desabilitado por incompetência.
-        #TODO Implementar atualização automática por seleção.
-        #self.connect(mainWidget,
-        #        SIGNAL('thisIsCurrent(PyQt_PyObject)'),
-        #        self.setcurrent)
-        #
-        #self.connect(self.view.selectionModel,
-        #        SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
-        #        self.sync_setselection)
-
         self.connect(self.upbutton,
                 SIGNAL('clicked()'),
                 self.update)
@@ -2782,37 +2767,6 @@ class DockRefs(QWidget):
         self.connect(mainWidget,
                 SIGNAL('delEntry(PyQt_PyObject)'),
                 self.lostentry)
-
-    def setcurrent(self, values):
-        '''Seleciona referências da entrada selecionada.'''
-        #TODO Colocar em prática sync automático.
-        self.view.selectionModel.clearSelection()
-        ids = str(values[18][1])
-        if ids:
-            bibkeys = [key.strip() for key in ids.split(',')]
-            print bibkeys
-            index = self.model.index(0, 0, QModelIndex())
-            selected_matches = []
-            for bibkey in bibkeys:
-                print 'BIB: %s' % bibkey
-                matches = self.model.match(index, 0, bibkey, -1,
-                        Qt.MatchContains)
-                print matches
-                if len(matches) == 1:
-                    match = matches[0]
-                    selected_matches.append(match)
-            for match in selected_matches:
-                print 'Match %s' % match
-                for x in xrange(self.ncols):
-                    print 'Coluna %s' % x
-                    index = self.model.index(match.row(), x, QModelIndex())
-                    self.view.selectionModel.select(index,
-                            QItemSelectionModel.Select)
-            #TODO Fazer entradas selecionadas irem para o topo.
-            #for index in selected_matches:
-            #    reference = self.view.model.data(index, Qt.DisplayRole)
-            #    self.view.model.remove_rows(index.row(), 1, QModelIndex())
-            #    self.view.model.insert_rows(0, 1, QModelIndex(), reference)
 
     def update(self):
         '''Aplica referências selecionadas para as entradas selecionadas.'''
@@ -2854,35 +2808,6 @@ class DockRefs(QWidget):
             self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
             logger.warning('Erro. Talvez o Mendeley esteja fora do ar.')
 
-    def sync_setselection(self, selected, deselected):
-        '''Sincroniza seleção da tabela com a seleção da lista.'''
-        #TODO Colocar em prática sync automático.
-        selected_indexes = selected.indexes()
-        deselected_indexes = deselected.indexes()
-        if selected_indexes:
-            for index in selected_indexes:
-                if index.column() == 0:
-                    selection = self.model.data(index, Qt.DisplayRole)
-                    print 'SELECTED: %s' % selection.toString()
-        else:
-            selection = ''
-        if deselected_indexes:
-            for index in deselected_indexes:
-                if index.column() == 0:
-                    deselection = self.model.data(index, Qt.DisplayRole)
-                    print 'DESELECTED: %s' % deselection.toString()
-        else:
-            deselection = ''
-        # Total de entradas selecionadas:
-        indexes = self.view.selectedIndexes()
-        total = []
-        if indexes:
-            for index in indexes:
-                if index.column() == 0:
-                    total.append(str(self.model.data(index,
-                        Qt.DisplayRole).toString()))
-        self.emit(SIGNAL('refSync(PyQt_PyObject)'), total)
-
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
 
@@ -2903,7 +2828,7 @@ class DockRefs(QWidget):
 
     def lostentry(self, bibkey):
         '''Avisa sobre referência perdida.'''
-        print 'Referência não está no banco de dados...'
+        logger.warning('Referência não está no banco de dados: bibkey')
         #matches = self.matchfinder(filename)
         #if len(matches) == 1:
         #    match = matches[0]
@@ -2915,7 +2840,7 @@ class DockRefs(QWidget):
         if rows > 0:
             self.model.remove_rows(0, rows, QModelIndex())
         else:
-            print 'Nada pra deletar.'
+            self.parent.changeStatus(u'Nada pra deletar.')
 
     def matchfinder(self, candidate):
         '''Buscador de duplicatas.'''
@@ -3044,8 +2969,7 @@ class DockThumb(QWidget):
                 if current_date.isValid():
                     return current_date
                 else:
-                    print u'Formato da data inválido! Corrigir.'
-                    #XXX Deixar aviso mais na cara?
+                    logger.warning('Formato da data inválido! Corrigir.')
                     self.parent.changeStatus(
                             u'Formato da data inválido! Corrigir na tabela ou usar o campo de edição.', 8000)
                     return default_date
@@ -3072,9 +2996,7 @@ class DockThumb(QWidget):
         # Tenta abrir o cache
         if not QPixmapCache.find(filename, self.pic):
             self.pic.load(thumbpath)
-            #print 'Criando cache da imagem %s...' % filename,
             QPixmapCache.insert(filename, self.pic)
-            #print 'pronto!'
         else:
             pass
         return self.pic
@@ -3215,7 +3137,7 @@ class DockUnsaved(QWidget):
             self.model.remove_rows(0, rows, QModelIndex())
             self.savebutton.setDisabled(True)
         else:
-            print 'Nada pra deletar.'
+            self.parent.changeStatus('Nada pra deletar.')
 
     def matchfinder(self, candidate):
         '''Buscador de duplicatas.'''
