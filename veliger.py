@@ -1023,7 +1023,10 @@ class MainWindow(QMainWindow):
         applylist = []
 
         # Tupla para o endswith()
-        extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
+        extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 
+                'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 
+                'MPG', 'mpeg', 'MPEG', 'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 
+                'WMV')
 
         t0 = time.time()
 
@@ -1243,7 +1246,7 @@ class MainWindow(QMainWindow):
                 logger.debug('Thumb %s criado!', thumbpath)
             except:
                 self.changeStatus(u'Não consegui criar o thumbnail...', 10000)
-                logger.warning('Thumb %s não foi criado!', thumbpath)
+                logger.warning('Thumb %s não foi criado! FFMpeg está instalado?', thumbpath)
 
     def matchfinder(self, candidate):
         '''Verifica se entrada já está na tabela.
