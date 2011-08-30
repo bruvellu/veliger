@@ -19,6 +19,7 @@ autor, direitos, tamanho, local, cidade, estado e país.
 Centro de Biologia Marinha da Universidade de São Paulo.
 '''
 
+import logging
 import operator
 import os
 import pickle
@@ -30,6 +31,7 @@ import time
 from datetime import datetime
 from PIL import Image
 from shutil import copy
+from urllib import urlretrieve
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -811,7 +813,7 @@ class MainWindow(QMainWindow):
                     keywords = [keyword.lower().strip() for keyword in keywords if keyword.strip() != '']
                     meta['tags'] = list(set(keywords))
 
-                # Pickle meta 
+                # Pickle meta
                 if meta_text:
                     meta_dic = pickle.dump(meta, meta_text)
                     meta_text.close()
@@ -983,7 +985,7 @@ class MainWindow(QMainWindow):
 
     def opendir_dialog(self):
         '''Abre janela para selecionar uma pasta.
-        
+
         Chama a função para varrer recursivamente a pasta selecionada. Lembra
         qual foi a última pasta escolhida.
         '''
@@ -1045,7 +1047,7 @@ class MainWindow(QMainWindow):
             return applylist
         # Salva cache
         self.cachetable()
-            
+
     def createmeta(self, filepath, charset='utf-8'):
         '''Define as variáveis extraídas dos metadados (IPTC e EXIF) da imagem.
 
@@ -1342,8 +1344,8 @@ class MainWindow(QMainWindow):
         Cria backup dos conteúdos da tabela e da lista de imagens modificadas.
         '''
         #TODO Integrar com QSettings()?
-        print 'Backup...',
-        #self.changeStatus(u'Salvando backup...')
+        print 'Backup...'
+        self.changeStatus(u'Salvando backup...')
         # Tabela
         tablecache = open(tablepickle, 'wb')
         entries = mainWidget.model.mydata
@@ -1359,12 +1361,12 @@ class MainWindow(QMainWindow):
         entries = self.dockUnsaved.mylist
         pickle.dump(entries, listcache)
         listcache.close()
-        # Completes 
+        # Completes
         autocache = open(autopickle, 'wb')
         for k, v in autolists.iteritems():
             comps = []
-            list = eval('self.automodels.' + k + '.stringList()')
-            for i in list:
+            ilist = eval('self.automodels.' + k + '.stringList()')
+            for i in ilist:
                 comps.append(i)
             autolists[k] = comps
         pickle.dump(autolists, autocache)
@@ -1569,7 +1571,6 @@ class EditCompletion(QWidget):
         self.lists = [
                 u'Marcadores',
                 u'Taxa',
-                #u'Espécies',
                 u'Especialistas',
                 u'Autores',
                 u'Direitos',
@@ -1630,7 +1631,7 @@ class EditCompletion(QWidget):
         elif modellist == u'Direitos':
             self.model = self.automodels.rights
         elif modellist == u'Locais':
-            self.model = self.automodels.locations
+            self.model = self.automodels.places
         elif modellist == u'Cidades':
             self.model = self.automodels.cities
         elif modellist == u'Estados':
@@ -1658,8 +1659,6 @@ class EditCompletion(QWidget):
             col = 3
         elif current == u'Taxa':
             col = 4
-        #elif current == u'Espécies':
-        #    col = 5
         elif current == u'Especialistas':
             col = 6
         elif current == u'Autores':
@@ -2089,7 +2088,7 @@ class DockEditor(QWidget):
                 self.parent.finish)
         self.rightsEdit.setCompleter(self.completer)
 
-        self.completer = MainCompleter(models.locations, self)
+        self.completer = MainCompleter(models.places, self)
         self.connect(self.completer, SIGNAL('activated(QString)'),
                 self.parent.finish)
         self.locationEdit.setCompleter(self.completer)
@@ -2170,8 +2169,8 @@ class DockEditor(QWidget):
 
 class AutoModels():
     '''Cria modelos para autocompletar campos de edição.'''
-    def __init__(self, list):
-        self.autolists = list
+    def __init__(self, ilist):
+        self.autolists = ilist
         for k, v in self.autolists.iteritems():
             if v:
                 v.sort()
@@ -3252,118 +3251,151 @@ class ListModel(QAbstractListModel):
 #=== MAIN ===#
 
 
-class InitPs():
+def initialize():
     '''Inicia variáveis e parâmetros globais do programa.'''
-    def __init__(self):
-        global tablepickle
-        global refspickle
-        global listpickle
-        global autopickle
-        global header
-        global datalist
-        global updatelist
-        global refslist
-        global autolists
-        global thumbdir
+    global tablepickle
+    global refspickle
+    global listpickle
+    global autopickle
+    global header
+    global datalist
+    global updatelist
+    global refslist
+    global autolists
+    global thumbdir
 
-        thumbdir = 'thumbs'
+    thumbdir = 'thumbs'
 
-        # Cabeçalho horizontal da tabela principal
-        header = [
-                u'Arquivo',     #0
-                u'Título',      #1
-                u'Legenda',     #2
-                u'Marcadores',  #3
-                u'Táxon',       #4
-                u'Espécie',     #5
-                u'Especialista',#6
-                u'Autor',       #7
-                u'Direitos',    #8
-                u'Tamanho',     #9
-                u'Local',       #10
-                u'Cidade',      #11
-                u'Estado',      #12
-                u'País',        #13
-                u'Latitude',    #14
-                u'Longitude',   #15
-                u'Data',        #16
-                u'Timestamp',   #17
-                u'Referências', #18
-                ]
+    # Cabeçalho horizontal da tabela principal
+    header = [
+            u'Arquivo',     #0
+            u'Título',      #1
+            u'Legenda',     #2
+            u'Marcadores',  #3
+            u'Táxon',       #4
+            u'Espécie',     #5
+            u'Especialista',#6
+            u'Autor',       #7
+            u'Direitos',    #8
+            u'Tamanho',     #9
+            u'Local',       #10
+            u'Cidade',      #11
+            u'Estado',      #12
+            u'País',        #13
+            u'Latitude',    #14
+            u'Longitude',   #15
+            u'Data',        #16
+            u'Timestamp',   #17
+            u'Referências', #18
+            ]
 
-        # Nome do arquivo Pickle para tabela
-        tablepickle = '.tablecache'
-        try:
-            tablecache = open(tablepickle, 'rb')
-            datalist = pickle.load(tablecache)
-            tablecache.close()
-            if not datalist:
-                datalist.append([
-                    u'', u'', u'', u'', u'',
-                    u'', u'', u'', u'', u'',
-                    u'', u'', u'', u'', u'',
-                    u'', u'', u'', u'',
-                    ])
-        except:
-            f = open(tablepickle, 'wb')
-            f.close()
-            datalist = [[
+    # Nome do arquivo Pickle para tabela
+    tablepickle = '.tablecache'
+    try:
+        tablecache = open(tablepickle, 'rb')
+        datalist = pickle.load(tablecache)
+        tablecache.close()
+        if not datalist:
+            datalist.append([
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'',
-                ],]
+                ])
+    except:
+        logger.debug('Arquivo .tablecache não existe, criando novo.')
+        f = open(tablepickle, 'wb')
+        f.close()
+        datalist = [[
+            u'', u'', u'', u'', u'',
+            u'', u'', u'', u'', u'',
+            u'', u'', u'', u'', u'',
+            u'', u'', u'', u'',
+            ],]
 
-        # Nome do arquivo Pickle para lista
-        listpickle = '.listcache'
-        try:
-            listcache = open(listpickle, 'rb')
-            updatelist = pickle.load(listcache)
-            listcache.close()
-        except:
-            f = open(listpickle, 'wb')
-            f.close()
-            updatelist = []
+    # Nome do arquivo Pickle para lista
+    listpickle = '.listcache'
+    try:
+        listcache = open(listpickle, 'rb')
+        updatelist = pickle.load(listcache)
+        listcache.close()
+    except:
+        logger.debug('Arquivo .listcache não existe, criando novo.')
+        f = open(listpickle, 'wb')
+        f.close()
+        updatelist = []
 
-        # Nome do arquivo Pickle para lista
-        refspickle = '.refscache'
-        try:
-            refscache = open(refspickle, 'rb')
-            refslist = pickle.load(refscache)
-            refscache.close()
-        except:
-            f = open(refspickle, 'wb')
-            f.close()
-            refslist = [[
-                u'', u'', u'', u'',
-                u'', u'', u'', u'',
-                ],]
+    # Nome do arquivo Pickle para lista
+    refspickle = '.refscache'
+    try:
+        refscache = open(refspickle, 'rb')
+        refslist = pickle.load(refscache)
+        refscache.close()
+    except:
+        logger.debug('Arquivo .refscache não existe, criando novo.')
+        f = open(refspickle, 'wb')
+        f.close()
+        refslist = [[
+            u'', u'', u'', u'',
+            u'', u'', u'', u'',
+            ],]
 
-        # Nome do arquivo Pickle para autocomplete
-        autopickle = '.autocomplete'
-        try:
-            autocomplete = open(autopickle, 'rb')
-            autolists = pickle.load(autocomplete)
-            autocomplete.close()
-        except:
-            f = open(autopickle, 'wb')
-            autolists = {
-                    'tags': [],
-                    'taxa': [],
-                    #'spp': [],
-                    'sources': [],
-                    'authors': [],
-                    'rights': [],
-                    'locations': [],
-                    'cities': [],
-                    'states': [],
-                    'countries': [],
-                    }
-            pickle.dump(autolists, f)
-            f.close()
+    # Nome do arquivo Pickle para autocomplete
+    autopickle = '.autocomplete'
+    try:
+        logger.info('Conectando ao Cifonauta...')
+        connection = urlretrieve('http://cifonauta.cebimar.usp.br/autocomplete.pkl', '.autocomplete')
+        logger.info('Autocomplete sincronizado!')
+    except:
+        logger.debug('Não conseguiu baixar o autocomplete.')
+    try:
+        autocomplete = open(autopickle, 'rb')
+        autolists = pickle.load(autocomplete)
+        autocomplete.close()
+    except:
+        logger.debug('Arquivo .autocomplete não existe, criando novo.')
+        f = open(autopickle, 'wb')
+        autolists = {
+                'tags': [],
+                'taxa': [],
+                'sources': [],
+                'authors': [],
+                'rights': [],
+                'places': [],
+                'cities': [],
+                'states': [],
+                'countries': [],
+                }
+        pickle.dump(autolists, f)
+        f.close()
 
 if __name__ == '__main__':
-    initps = InitPs()
+    # Criando o logger.
+    logger = logging.getLogger('veliger')
+    logger.setLevel(logging.DEBUG)
+    logger.propagate = False
+    # Define formato das mensagens.
+    formatter = logging.Formatter('[%(levelname)s] %(asctime)s @ %(module)s %(funcName)s (l%(lineno)d): %(message)s')
+    # Cria o manipulador do console.
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+    # Define a formatação para o console.
+    console_handler.setFormatter(formatter)
+    # Adiciona o console para o logger.
+    logger.addHandler(console_handler)
+    # Cria o manipulador do arquivo.log.
+    file_handler = logging.FileHandler('logs/veliger.log')
+    file_handler.setLevel(logging.DEBUG)
+    # Define a formatação para o arquivo.log.
+    file_handler.setFormatter(formatter)
+    # Adiciona o arquivo.log para o logger.
+    logger.addHandler(file_handler)
+
+    # Início do programa.
+    logger.info('Véliger iniciando...')
+
+    # Roda função de inicialização.
+    initialize()
     app = QApplication(sys.argv)
     app.setOrganizationName(u'CEBIMar-USP')
     app.setOrganizationDomain(u'www.usp.br/cbm')
