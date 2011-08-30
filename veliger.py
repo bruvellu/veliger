@@ -1295,6 +1295,7 @@ class MainWindow(QMainWindow):
                 if warning == QMessageBox.Yes:
                     for filename in unsaved:
                         mainWidget.emitlost(filename)
+                        logger.debug('%s modificado, mas será retirado da tabela', filename)
                     # Ordem decrescente previne contra o erro 'out of range'
                     # na hora de deletar diversas entradas
                     indexes.sort()
@@ -1357,8 +1358,8 @@ class MainWindow(QMainWindow):
 
         Cria backup dos conteúdos da tabela e da lista de imagens modificadas.
         '''
-        #TODO Integrar com QSettings()?
-        print 'Backup...'
+        #TODO Integrar com QSettings()? Tentei, mas o pickle não funcionou por 
+        # motivos de encoding e salvar a lista diretamente também não... :(
         self.changeStatus(u'Salvando backup...')
         # Tabela
         tablecache = open(tablepickle, 'wb')
@@ -1385,8 +1386,8 @@ class MainWindow(QMainWindow):
             autolists[k] = comps
         pickle.dump(autolists, autocache)
         autocache.close()
-        print 'pronto!'
-        #self.changeStatus(u'Salvando backup... pronto!')
+        logger.debug('Backup salvo nos arquivos: %s, %s, %s, %s', tablepickle, 
+                refspickle, listpickle, autopickle)
 
     def readsettings(self):
         '''Lê o estado anterior do aplicativo durante a inicialização.'''
@@ -1518,8 +1519,9 @@ class RightClickMenu(QMenu):
                 if wrote == 0:
                     yes += 1
                     self.parent.changeStatus(u'%s atualizado!' % filepath)
+                    logger.debug('%s atualizado!', filepath)
                 else:
-                    print filepath
+                    logger.debug('%s erro!', filepath)
                     no += 1
             self.parent.changeStatus(u'Sucesso! %d arquivos atualizados!' % yes)
 
@@ -1528,12 +1530,14 @@ class ManualDialog(QDialog):
     '''Janela do manual de instruções.'''
     def __init__(self, parent):
         QDialog.__init__(self, parent)
+        #TODO
 
 
 class AboutDialog(QDialog):
     '''Janela com informações sobre o programa.'''
     def __init__(self, parent):
         QDialog.__init__(self, parent)
+        #TODO
 
 
 class PrefsDialog(QDialog):
@@ -1718,6 +1722,7 @@ class PrefsGerais(QWidget):
     '''Opções gerais do programa.'''
     def __init__(self):
         QWidget.__init__(self)
+        #TODO
 
 
 class MainTable(QTableView):
@@ -2049,15 +2054,12 @@ class DockEditor(QWidget):
     def charlimit(self, field):
         '''Limita número de caracteres de acordo com o IPTC.'''
         #TODO Talvez não use essa função.
-        print 'Limitando...'
         if field == u'Título':
             field.setMaxLength(64)
         elif field == u'Legenda':
             field.setMaxLength(2000)
         elif field == u'Táxon':
             field.setMaxLength(256)
-        #elif field == u'Espécie':
-        #    field.setMaxLength(32)
         elif field == u'Autor':
             field.setMaxLength(32)
         elif field == u'Especialista':
@@ -2078,17 +2080,11 @@ class DockEditor(QWidget):
         '''Gera autocompletadores dos campos.'''
         self.tagcompleter.setWidget(self.tageditor)
 
-        self.completer = MainCompleter(models.taxa, self)
         # Envia texto autocompletado para poder ser salvo no savedata.
-        #XXX Melhorar isso...
+        self.completer = MainCompleter(models.taxa, self)
         self.connect(self.completer, SIGNAL('activated(QString)'),
                 self.parent.finish)
         self.taxonEdit.setCompleter(self.completer)
-
-        #self.completer = MainCompleter(models.spp, self)
-        #self.connect(self.completer, SIGNAL('activated(QString)'),
-        #        self.parent.finish)
-        #self.spEdit.setCompleter(self.completer)
 
         self.completer = MainCompleter(models.sources, self)
         self.connect(self.completer, SIGNAL('activated(QString)'),
@@ -2207,7 +2203,7 @@ class TagCompleter(QCompleter):
     '''Completador de marcadores.
 
     Adaptado de John Schember:
-    john.nachtimwald.com/2009/07/04/qcompleter-and-comma-separated-tags/    
+    john.nachtimwald.com/2009/07/04/qcompleter-and-comma-separated-tags/
     '''
     def __init__(self, model, parent):
         QCompleter.__init__(self, model, parent)
@@ -2231,7 +2227,6 @@ class CompleterLineEdit(QLineEdit):
     '''
     def __init__(self, *args):
         QLineEdit.__init__(self)
-
         self.connect(self, SIGNAL('textEdited(QString)'), self.text_changed)
 
     def text_changed(self, text):
@@ -2357,7 +2352,7 @@ class DockGeo(QWidget):
                 # Se estiver visível, carregar o mapa.
                 self.load_geocode(latitude, longitude)
         except:
-            print u'Sem GPS.'
+            logger.debug('Sem GPS.')
 
     def gps_string(self, gps):
         '''Transforma coordenadas extraídas do exif em texto.'''
@@ -2391,7 +2386,7 @@ class DockGeo(QWidget):
             dms = self.un_decimal(decimals[0], decimals[1])
             self.setdms(dms)
         else:
-            print 'Nenhum ponto está marcado no mapa.'
+            logger.info('Nenhum ponto está marcado no mapa.')
 
     def un_decimal(self, lat, long):
         '''Converte o valor decimal das coordenadas.
@@ -2832,9 +2827,9 @@ class DockRefs(QWidget):
                 'issue', 'pages']
         try:
             mendeley = Mendeley()
-            raw_dic = mendeley.docs_details
-            total = mendeley.total
-            doc_list = []
+            raw_dic = mendeley.documents_details
+            total_results = mendeley.total_results
+            document_list = []
             for k, v in raw_dic.iteritems():
                 # Checa se key existe antes para evitar erros.
                 for key in keys:
@@ -2843,14 +2838,16 @@ class DockRefs(QWidget):
                 citation = [k, v['year'], ', '.join(v['authors']), v['title'],
                         v['publication_outlet'], v['volume'], v['issue'],
                         v['pages']]
-                doc_list.append(citation)
-            print doc_list
+                document_list.append(citation)
             self.clearlist()
-            for citation in doc_list:
+            for citation in document_list:
                 self.model.insert_rows(0, 1, QModelIndex(), citation)
-            self.parent.changeStatus(u'%s referências carregadas com sucesso do Mendeley.' % total, 5000)
+            self.parent.changeStatus(u'%s referências carregadas com sucesso do Mendeley.' % total_results, 5000)
+            logger.info('%s referências carregadas do Mendeley.', 
+                    total_results)
         except:
             self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
+            logger.warning('Erro. Talvez o Mendeley esteja fora do ar.')
 
     def sync_setselection(self, selected, deselected):
         '''Sincroniza seleção da tabela com a seleção da lista.'''
