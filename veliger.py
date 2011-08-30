@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         #XXX Global pela facilidade de acesso. Melhorar eventualmente.
         global mainWidget
         global options
-        mainWidget = MainTable(datalist, header)
+        mainWidget = MainTable(self, datalist, header)
         self.model = mainWidget.model
         self.automodels = AutoModels(autolists)
         options = PrefsDialog(self)
@@ -370,7 +370,7 @@ class MainWindow(QMainWindow):
 
     def copydata(self):
         '''Copia metadados da entrada selecionada.
-        
+
         Metadados são salvos no objeto self.copied, como lista.
         '''
         if self.dockEditor.values:
@@ -393,6 +393,14 @@ class MainWindow(QMainWindow):
             return first
         else:
             return second
+
+    def put_dot(self, caption):
+        '''Coloca ponto final em legendas, se precisar.'''
+        if caption:
+            marks = ['.', '?', '!']
+            if not caption.endsWith('.'):
+                caption = caption + '.'
+        return caption
 
     def savedata(self, field, autocomplete):
         '''Salva valor do campo que está sendo editado para a tabela.
@@ -424,7 +432,8 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 2, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.dockEditor.captionEdit.text()), Qt.EditRole)
+                        QVariant(self.put_dot(self.dockEditor.captionEdit.text())), 
+                        Qt.EditRole)
         elif field.objectName() == u'Marcadores':
             for row in rows:
                 index = mainWidget.model.index(row, 3, QModelIndex())
@@ -784,7 +793,7 @@ class MainWindow(QMainWindow):
                         'country': values[12],
                         'taxon': values[4],
                         'rights': values[7],
-                        'caption': values[2],
+                        'caption': self.put_dot(values[2]),
                         'size': values[8],
                         'source': values[5],
                         'date': values[15],
@@ -827,7 +836,7 @@ class MainWindow(QMainWindow):
             info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
             try:
                 info.data['object name'] = values[1]                    # title
-                info.data['caption/abstract'] = values[2]               # caption
+                info.data['caption/abstract'] = self.put_dot(values[2]) # caption
                 info.data['headline'] = values[4]                       # taxon
                 info.data['source'] = values[5]                         # source
                 info.data['by-line'] = values[6]                        # author
@@ -1058,7 +1067,7 @@ class MainWindow(QMainWindow):
             if len(info.data) < 4:
                 print u'%s não tem dados IPTC!' % filename
 
-            # Definindo as variáveis                            # IPTC
+            # Definindo as variáveis IPTC
             meta = {
                     'title': info.data['object name'],# 5
                     'tags': info.data['keywords'],# 25
@@ -1117,7 +1126,6 @@ class MainWindow(QMainWindow):
                     'taxon': u'',
                     'rights': u'',
                     'caption': u'',
-                    'genus_sp': u'',
                     'size': u'',
                     'source': u'',
                     'date': '1900-01-01 01:01:01',
@@ -1693,9 +1701,10 @@ class PrefsGerais(QWidget):
 
 class MainTable(QTableView):
     '''Tabela principal com entradas.'''
-    def __init__(self, datalist, header, *args):
-        QTableView.__init__(self, *args)
+    def __init__(self, parent, datalist, header, *args):
+        QTableView.__init__(self, parent, *args)
 
+        self.parent = parent
         self.header = header
         self.mydata = datalist
 
@@ -1822,6 +1831,7 @@ class TableModel(QAbstractTableModel):
     '''Modelo dos dados.'''
     def __init__(self, parent, mydata, header, *args):
         QAbstractTableModel.__init__(self, parent, *args)
+        self.parent = parent
         self.mydata = mydata
         self.header = header
 
@@ -1862,7 +1872,10 @@ class TableModel(QAbstractTableModel):
         if index.isValid() and role == Qt.EditRole:
             oldvalue = self.mydata[index.row()][index.column()]
             # Manter lower case na coluna dos marcadores
-            if index.column() == 3:
+            if index.column() == 2:
+                #XXX Meio tosco chamar paidopai, mas está funcionando...
+                self.mydata[index.row()][index.column()] = self.parent.parent.put_dot(value.toString())
+            elif index.column() == 3:
                 self.mydata[index.row()][index.column()] = unicode(
                         value.toString()).lower()
             else:
@@ -2093,11 +2106,10 @@ class DockEditor(QWidget):
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando dado é alterado.'''
-        #print index.row(), index.column(), unicode(value.toString()), unicode(oldvalue)
         if index.column() == 1:
             self.titleEdit.setText(value.toString())
         elif index.column() == 2:
-            self.captionEdit.setText(value.toString())
+            self.captionEdit.setText(self.parent.put_dot(value.toString()))
         elif index.column() == 3:
             self.tagsEdit.setText(value.toString())
         elif index.column() == 4:
