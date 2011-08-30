@@ -70,6 +70,7 @@ class MainWindow(QMainWindow):
         options = PrefsDialog(self)
         self.help = ManualDialog(self)
         self.about = AboutDialog(self)
+
         # Objeto que guarda valores copiados.
         self.copied = []
 
@@ -109,15 +110,14 @@ class MainWindow(QMainWindow):
 
         # Atribuições da MainWindow
         self.setCentralWidget(mainWidget)
-        self.setWindowTitle(u'VÉLIGER - Editor de Metadados')
+        self.setWindowTitle(u'Véliger - Editor de Metadados')
         self.setWindowIcon(QIcon(u':/appicon.svg'))
         self.statusBar().showMessage(u'Pronto para editar!', 2000)
         self.menubar = self.menuBar()
 
         ## Ações do menu
         # Sair
-        self.exit = QAction(QIcon(u':/desligar.png'),
-                u'Sair', self)
+        self.exit = QAction(QIcon(u':/desligar.png'), u'Sair', self)
         self.exit.setShortcut('Ctrl+Q')
         self.exit.setStatusTip(u'Fechar o programa')
         self.connect(self.exit, SIGNAL('triggered()'), SLOT('close()'))
@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
         self.copyMeta.setShortcut('Ctrl+C')
         self.copyMeta.setStatusTip(u'Copiar metadados da entrada selecionada')
         self.connect(self.copyMeta, SIGNAL('triggered()'), self.copydata)
-        
+
         # Colar metadados
         self.pasteMeta = QAction(QIcon(u':/colar.png'),
                 u'Colar metadados', self)
@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
         self.editar.addSeparator()
         self.editar.addAction(self.openPref)
 
-        # Janela        
+        # Janela
         self.janela = self.menubar.addMenu(u'&Janela')
         self.janela.addAction(self.toggleEditor)
         self.janela.addAction(self.toggleThumb)
@@ -296,7 +296,7 @@ class MainWindow(QMainWindow):
         self.connect(self.geoDockWidget,
                 SIGNAL('visibilityChanged(bool)'),
                 self.istab_selected)
-        
+
         self.connect(self.dockUnsaved,
                 SIGNAL('syncSelection(PyQt_PyObject)'),
                 self.setselection)
@@ -310,7 +310,7 @@ class MainWindow(QMainWindow):
                 SIGNAL('timeout()'),
                 self.finish)
 
-        # Context menu 
+        # Context menu
         self.connect(mainWidget,
                 SIGNAL('customContextMenuRequested(QPoint)'),
                 self.rightclick)
@@ -345,20 +345,20 @@ class MainWindow(QMainWindow):
         # Inicia o timer se o objeto estiver modificado.
         if modified:
             self.timer.start(100)
-        
+
     def finish(self, autocomplete=''):
         '''Desencadeia o processo de salvar.
-        
+
         Pode ser chamada diretamente, sem o timer. Usado mais pelo auto
         complete.
         '''
-        # Parar o timer evita q o cursor volte para o campo
+        # Parar o timer evita q o cursor volte para o campo.
         if self.timer.isActive():
             self.timer.stop()
         # Caso precise identificar o sender algum dia:
         # self.sender().inherits('QTimer')
         self.savedata(self.live_edit, autocomplete)
-        print 'Salvou...'
+        logger.debug('Salvou...')
 
     def clear(self):
         '''Limpa seleção das tabelas.'''
@@ -377,6 +377,7 @@ class MainWindow(QMainWindow):
             values = self.dockEditor.values
             self.copied = [value[1] for value in values]
             self.changeStatus(u'Metadados copiados de %s' % values[0][1], 5000)
+            logger.debug('Metadados copiados de %s', values[0][1])
 
     def choose_one(self, first, second):
         '''Escolhe um entre dois objetos.
@@ -397,7 +398,6 @@ class MainWindow(QMainWindow):
     def put_dot(self, caption):
         '''Coloca ponto final em legendas, se precisar.'''
         if caption:
-            marks = ['.', '?', '!']
             if not caption.endsWith('.'):
                 caption = caption + '.'
         return caption
@@ -535,9 +535,10 @@ class MainWindow(QMainWindow):
             try:
                 field.setCursorPosition(cursor)
             except:
-                print 'Não deu certo reposicionar o cursor.'
+                logger.debug('Não deu certo reposicionar o cursor.')
 
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
+        logger.debug('%d entradas alteradas!', nrows)
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).
@@ -615,6 +616,7 @@ class MainWindow(QMainWindow):
         # Gambiarra para atualizar os valores da tabela.
         mainWidget.setFocus(Qt.OtherFocusReason)
         self.changeStatus(u'%d entradas alteradas!' % nrows, 5000)
+        logger.debug('%d entradas alteradas!', nrows)
 
     def openpref_dialog(self):
         '''Abre janela de opções.'''
@@ -674,6 +676,8 @@ class MainWindow(QMainWindow):
             self.changeStatus(
                     u'Metadados de %d figuras convertidos para UTF-8'
                     % n_all)
+            logger.debug(u'Metadados de %d figuras convertidos para UTF-8', 
+                    n_all)
         else:
             self.changeStatus(u'Nenhuma imagem foi modificada')
 
@@ -708,12 +712,13 @@ class MainWindow(QMainWindow):
             mainWidget.selectionModel.clearSelection()
             mainWidget.emitlost(filename)
             self.changeStatus(u'%s não foi encontrada, importe-a novamente' % filename, 10000)
+            logger.debug('%s não foi encontrada, importe-a novamente', filename)
         else:
-            #FIXME Não está funcionando...
-            for match in matches:
-                mainWidget.selectionModel.select(match,
-                        QItemSelectionModel.Select)
-
+            logger.debug('BAM! O que aconteceu aqui??? Descobrir.')
+            #FIXME Não está funcionando..., mas para que serve isso?
+            #for match in matches:
+            #    mainWidget.selectionModel.select(match,
+            #            QItemSelectionModel.Select)
 
     def commitmeta(self):
         '''Grava os metadados modificados na imagem.
@@ -741,6 +746,7 @@ class MainWindow(QMainWindow):
                     write = self.writemeta(values)
                     if write == 0:
                         self.changeStatus(u'%s atualizado!' % filename)
+                        logger.debug('Metadados gravados em %s!', filename)
                         continue
                     else:
                         break
@@ -748,6 +754,7 @@ class MainWindow(QMainWindow):
                 mainWidget.emitsaved()
             else:
                 self.changeStatus(u'%s deu erro!' % filename, 5000)
+                logger.warning('%s deu erro na hora da gravação!', filename)
                 critical = QMessageBox()
                 critical.setWindowTitle(u'Erro de gravação!')
                 critical.setText(u'Metadados não foram gravados.')
@@ -772,7 +779,6 @@ class MainWindow(QMainWindow):
 
         Valores são salvos de acordo com os respectivos padrões, IPTC e EXIF.
         '''
-        #XXX Organizar essa zona...
         video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg',
                 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG',
                 'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 'WMV')
@@ -782,7 +788,7 @@ class MainWindow(QMainWindow):
                 new_name = text_name.split('.')[0] + '.txt'
                 text_path = os.path.join(os.path.dirname(values[0]), new_name)
                 meta_text = open(text_path, 'wb')
-                print 'Arquivo de info criado!'
+                logger.debug('Arquivo acessório criado para %s!', values[0])
 
                 meta = {
                         'title': values[1],
@@ -818,7 +824,7 @@ class MainWindow(QMainWindow):
                     os.utime(values[0], None)
             except:
                 #FIXME Erro não está aparecendo...
-                print '\nOcorreu algum erro. '
+                logger.warning('Erro na gravação do arquivo acessório.')
                 self.changeStatus(u'ERRO!', 10000)
                 critical = QMessageBox()
                 critical.setWindowTitle(u'Erro!')
@@ -831,7 +837,6 @@ class MainWindow(QMainWindow):
                 return 0
 
         else:
-            print 'Gravando metadados pelo IPTCinfo...'
             # Criar objeto com metadados
             info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
             try:
@@ -859,7 +864,7 @@ class MainWindow(QMainWindow):
                 info.save()
 
                 # Exif
-                print 'Gravando EXIF...'
+                logger.info('Gravando EXIF de %s...', values[0])
                 lat = values[13]
                 long = values[14]
                 image = self.dockGeo.get_exif(values[0])
@@ -878,10 +883,12 @@ class MainWindow(QMainWindow):
                         self.changeStatus(
                                 u'Gravando novas coordenadas de %s... pronto!'
                                 % values[0], 5000)
+                        logger.debug('EXIF gravado em %s', values[0])
                     except:
                         self.changeStatus(
                                 u'Gravando novas coordenadas de %s... ERRO OCORREU!'
                                 % values[0], 5000)
+                        logger.warning('Erro na gravação do EXIF em %s...', values[0])
                 else:
                     try:
                         self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
@@ -894,10 +901,14 @@ class MainWindow(QMainWindow):
                         self.changeStatus(
                                 u'Deletando o campo Exif.GPSInfo de %s... pronto!'
                                 % values[0], 5000)
+                        logger.debug('Deletando campo Exif.GPSInfo de %s', 
+                                values[0])
                     except:
                         self.changeStatus(
                                 u'Deletando o campo Exif.GPSInfo de %s... ERRO!'
                                 % values[0], 5000)
+                        logger.debug('Erro para deletar Exif.GPSInfo de %s', 
+                                values[0])
 
                 # Data da criação da imagem
                 if values[15]:
@@ -907,10 +918,10 @@ class MainWindow(QMainWindow):
                         image['Exif.Photo.DateTimeDigitized'] = newdate
                         image.write()
                     except:
-                        print u'Erro na hora de gravar a data.'
+                        logger.debug('Erro para gravar data de %s.', values[0])
                 else:
                     try:
-                        #TODO Decidir o que fazer aqui... deletar ou passar ''?
+                        #TODO Decidir o que fazer aqui... deletar ou passar?
                         # Se nenhum valor estiver definido salvar padrão.
                         default_date = datetime(1900, 01, 01, 00, 00, 00)
                         image['Exif.Photo.DateTimeOriginal'] = default_date
@@ -921,11 +932,11 @@ class MainWindow(QMainWindow):
                         #print image['Exif.Image.DateTime']
                         image.write()
                     except:
-                        print u'Erro na hora de gravar a data.'
+                        logger.debug('Erro para gravar data de %s.', values[0])
 
             except:
                 #FIXME Erro não está aparecendo...
-                print '\nOcorreu algum erro. '
+                logger.warning('Ocorreu algum erro.')
                 self.changeStatus(u'ERRO!', 10000)
                 critical = QMessageBox()
                 critical.setWindowTitle(u'Erro!')
@@ -962,19 +973,22 @@ class MainWindow(QMainWindow):
             self.changeStatus(u'Importando %d imagens...' % n_all)
             for filepath in filepaths:
                 filename = os.path.basename(unicode(filepath))
-                print filename
                 matches = self.matchfinder(filename)
                 if len(matches) == 0:
                     entrymeta = self.createmeta(filepath)
                     self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
                     n_new += 1
+                    logger.info('%s foi importada.', filepath)
                 else:
                     n_dup += 1
+                    logger.info('%s é duplicada.', filepath)
                     pass
             t1 = time.time()
             t = t1 - t0
             self.changeStatus(u'%d imagens analisadas em %.2f s,' % (n_all, t) +
                     u' %d novas e %d duplicadas' % (n_new, n_dup), 10000)
+            logger.info('%d imagens analisadas em %.2f s', n_all, t)
+            logger.info('%d novas e %d duplicadas', n_new, n_dup)
         # Salva cache
         self.cachetable()
 
@@ -1013,6 +1027,7 @@ class MainWindow(QMainWindow):
 
         t0 = time.time()
 
+        logger.info('Buscando imagens em %s', folder)
         # Buscador de imagens em ação
         for root, dirs, files in os.walk(folder):
             for filename in files:
@@ -1024,20 +1039,24 @@ class MainWindow(QMainWindow):
                             entrymeta = self.createmeta(filepath)
                             self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
                             n_new += 1
+                            logger.info('%s foi importada.', filepath)
                         else:
                             n_dup += 1
+                            logger.info('%s é duplicada.', filepath)
                             pass
                         n_all += 1
                     else:
                         filepath = os.path.join(root, filename)
                         applylist.append(filepath)
 
-        else:	# Se o número máximo de imagens for atingido, finalizar
+        else: # Se o número máximo de imagens for atingido, finalizar
             if not apply_only:
                 t1 = time.time()
                 t = t1 - t0
                 self.changeStatus(u'%d imagens analisadas em %.2f s,' % (n_all, t) +
                         u' %d novas e %d duplicadas' % (n_new, n_dup), 10000)
+                logger.info('%d imagens analisadas em %.2f s', n_all, t)
+                logger.info('%d novas e %d duplicadas', n_new, n_dup)
         if apply_only:
             return applylist
         # Salva cache
@@ -1052,6 +1071,7 @@ class MainWindow(QMainWindow):
         filepath = unicode(filepath)
         filename = os.path.basename(filepath)
         self.changeStatus(u'Lendo os metadados de %s e criando variáveis...' % filename)
+        logger.info('Lendo metadados de %s...', filename)
         # Extensões
         photo_extensions = ('jpg', 'JPG', 'jpeg', 'JPEG')
         video_extensions = ('avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 'WMV')
@@ -1065,7 +1085,7 @@ class MainWindow(QMainWindow):
             info = IPTCInfo(filepath, force=True, inp_charset=charset)
             # Checando se o arquivo tem dados IPTC
             if len(info.data) < 4:
-                print u'%s não tem dados IPTC!' % filename
+                logger.debug('%s não tem dados IPTC!', filename)
 
             # Definindo as variáveis IPTC
             meta = {
@@ -1095,6 +1115,7 @@ class MainWindow(QMainWindow):
                     gps_str = self.dockGeo.gps_string(gps)
                     meta['latitude'] = gps_str['lat']
                     meta['longitude'] = gps_str['long']
+                    logger.debug('GPS íntegro.')
                 else:
                     meta['latitude'], meta['longitude'] = '', ''
             else:
@@ -1105,10 +1126,10 @@ class MainWindow(QMainWindow):
             # Caso o metadado esteja como string, tentar converter em datetime.
             if isinstance(datedate, str) or isinstance(datedate, bool):
                 try:
-                    print 'Data como string, convertendo....'
+                    logger.debug('Data como string, convertendo...')
                     meta['date'] = datetime.strptime(datedate, '%Y-%m-%d %H:%M:%S')
                 except:
-                    print 'Algum erro ocorreu na conversão'
+                    logger.debug('Algum erro ocorreu na conversão')
                     meta['date'] = ''
             else:
                 meta['date'] = datedate.strftime('%Y-%m-%d %H:%M:%S')
@@ -1138,7 +1159,7 @@ class MainWindow(QMainWindow):
             try:
                 text_path = filepath.split('.')[0] + '.txt'
                 meta_text = open(text_path, 'rb')
-                print 'Arquivo de info existe!'
+                logger.debug('Arquivo de info já existe!')
             except:
                 meta_text = ''
 
@@ -1176,7 +1197,6 @@ class MainWindow(QMainWindow):
         if entrymeta[3] != '':
             entrymeta[3] = entrymeta[3] + ', '
         # Converte valores dos metadados vazios (None) para string em branco
-        # FIXME Checar se isso está funcionando direito...
         for index in [index for index, field in enumerate(entrymeta) if \
                 field is None]:
             field = u''
@@ -1198,6 +1218,8 @@ class MainWindow(QMainWindow):
         filename = os.path.basename(filepath)
         thumbs = os.listdir(thumbdir)
         thumbpath = os.path.join(thumbdir, filename)
+        #TODO Ver um bom jeito para comparar arquivos.
+        # try: hashlib, chunk and filecmp
         if filename in thumbs:
             pass
         else:
@@ -3254,7 +3276,7 @@ def initialize():
     global updatelist
     global refslist
     global autolists
-    global thumbdir
+    global thumbdir # global para ser usada no pixmapcache
 
     thumbdir = 'thumbs'
 
