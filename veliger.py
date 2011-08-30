@@ -3236,7 +3236,7 @@ def initialize():
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
                 u'', u'', u'', u'', u'',
-                u'', u'', u'', u'',
+                u'', u'', u'',
                 ])
     except:
         logger.debug('Arquivo .tablecache não existe, criando novo.')
@@ -3246,7 +3246,7 @@ def initialize():
             u'', u'', u'', u'', u'',
             u'', u'', u'', u'', u'',
             u'', u'', u'', u'', u'',
-            u'', u'', u'', u'',
+            u'', u'', u'',
             ],]
 
     # Nome do arquivo Pickle para lista
