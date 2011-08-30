@@ -1220,31 +1220,30 @@ class MainWindow(QMainWindow):
         thumbpath = os.path.join(thumbdir, filename)
         #TODO Ver um bom jeito para comparar arquivos.
         # try: hashlib, chunk and filecmp
-        if filename in thumbs:
-            pass
-        else:
-            if type == 'photo':
-                size = 400, 400
-                copy(filepath, thumbdir)
-                self.changeStatus('%s copiado para %s' % (filename, thumbdir))
-                try:
-                    im = Image.open(thumbpath)
-                    im.thumbnail(size, Image.ANTIALIAS)
-                    im.save(thumbpath, 'JPEG')
-                except:
-                    print u'Não consegui criar o thumbnail...'
+        if type == 'photo':
+            size = 400, 400
+            copy(filepath, thumbdir)
+            self.changeStatus('%s copiado para %s' % (filename, thumbdir))
+            try:
+                im = Image.open(thumbpath)
+                im.thumbnail(size, Image.ANTIALIAS)
+                im.save(thumbpath, 'JPEG')
+                logger.debug('Thumb %s criado!', thumbpath)
+            except:
+                logger.warning('Thumb %s não foi criado!', thumbpath)
 
-            elif type == 'video':
-                #FIXME Tentar descobrir um jeito portável de fazer isso!
-                # PythonMagick talvez?
-                try:
-                    # Cria thumb grande a partir de 1 frame no segundo 5
-                    #FIXME Proporção dos vídeos HDs saem errada.
-                    subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
-                        '-vf', 'scale=400:-1', '-ss', '1', '-f', 'image2', thumbpath])
-                except:
-                    self.changeStatus(u'Não consegui criar o thumbnail...', 10000)
-                    print u'Não consegui criar o thumbnail...'
+        elif type == 'video':
+            #FIXME Tentar descobrir um jeito portável de fazer isso!
+            # PythonMagick talvez?
+            try:
+                # Cria thumb grande a partir de 1 frame no segundo 5
+                #FIXME Proporção dos vídeos HDs saem errada.
+                subprocess.call(['ffmpeg', '-i', filepath, '-vframes', '1',
+                    '-vf', 'scale=400:-1', '-ss', '1', '-f', 'image2', thumbpath])
+                logger.debug('Thumb %s criado!', thumbpath)
+            except:
+                self.changeStatus(u'Não consegui criar o thumbnail...', 10000)
+                logger.warning('Thumb %s não foi criado!', thumbpath)
 
     def matchfinder(self, candidate):
         '''Verifica se entrada já está na tabela.
