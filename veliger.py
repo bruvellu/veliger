@@ -2585,9 +2585,9 @@ class DockGeo(QWidget):
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição correspondente quando tabela é alterada.'''
-        if index.column() == 14:
+        if index.column() == 13:
             self.lat.setText(value.toString())
-        elif index.column() == 15:
+        elif index.column() == 14:
             self.long.setText(value.toString())
         if self.ismap_selected:
             self.load_geocode(self.lat.text(), self.long.text())
@@ -2984,7 +2984,7 @@ class DockThumb(QWidget):
 
     def setsingle(self, index, value, oldvalue):
         '''Atualiza campo de edição quando tabela é alterada diretamente.'''
-        if index.column() == 16:
+        if index.column() == 15:
             current_date = QDateTime.fromString(value.toString(), 'yyyy-MM-dd hh:mm:ss')
             default_date = QDateTime.fromString('1900-01-01 00:00:00', 'yyyy-MM-dd hh:mm:ss')
             if value.toString():
@@ -3013,7 +3013,7 @@ class DockThumb(QWidget):
         if values and values[0][1] != '':
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
-            self.dateedit.setDateTime(self.iodate(values[16][1]))
+            self.dateedit.setDateTime(self.iodate(values[15][1]))
             timestamp = values[17][1]
             self.timestamp.setText(timestamp)
 
