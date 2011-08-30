@@ -2596,8 +2596,8 @@ class DockGeo(QWidget):
         serem acessados pela função state. E assim carregar o mapa quando a
         imagem já estiver selecionada e a aba tornar-se visível.
         '''
-        latitude = values[14][1]
-        longitude = values[15][1]
+        latitude = values[13][1]
+        longitude = values[14][1]
         if latitude and longitude:
             self.lat.setText(latitude)
             self.long.setText(longitude)
@@ -2613,8 +2613,13 @@ class DockGeo(QWidget):
 
     def string_gps(self, latitude, longitude):
         '''Converte string das coordenadas para dicionário.'''
+        print 'GPS'
+        print latitude
+        print longitude
         lat = re.findall('\w+', latitude)
         long = re.findall('\w+', longitude)
+        print lat
+        print long
         gps = {
                 'latref': lat[0],
                 'latdeg': int(lat[1]),
