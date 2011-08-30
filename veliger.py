@@ -396,7 +396,7 @@ class MainWindow(QMainWindow):
 
     def savedata(self, field, autocomplete):
         '''Salva valor do campo que está sendo editado para a tabela.
-        
+
         Usa o nome do objeto (designado na criação) para identificar o campo
         que está sendo editado. Apenas um campo será salvo (mas pode ser salvo
         em múltiplas entradas).
@@ -413,7 +413,7 @@ class MainWindow(QMainWindow):
                 cursor = field.cursorPosition()
             except:
                 print 'Não capturou cursor...'
-        
+
         # Inicia live update da tabela.
         if field.objectName() == u'Título':
             for row in rows:
@@ -439,85 +439,78 @@ class MainWindow(QMainWindow):
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.taxonEdit.text())),
                         Qt.EditRole)
-        #elif field.objectName() == u'Espécie':
-        #    for row in rows:
-        #        index = mainWidget.model.index(row, 5, QModelIndex())
-        #        mainWidget.model.setData(index,
-        #                QVariant(self.choose_one(autocomplete,
-        #                    self.dockEditor.spEdit.text())),
-        #                Qt.EditRole)
         elif field.objectName() == u'Especialista':
             for row in rows:
-                index = mainWidget.model.index(row, 6, QModelIndex())
+                index = mainWidget.model.index(row, 5, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.sourceEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Autor':
             for row in rows:
-                index = mainWidget.model.index(row, 7, QModelIndex())
+                index = mainWidget.model.index(row, 6, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.authorEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Direitos':
             for row in rows:
-                index = mainWidget.model.index(row, 8, QModelIndex())
+                index = mainWidget.model.index(row, 7, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.rightsEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Tamanho':
             for row in rows:
-                index = mainWidget.model.index(row, 9, QModelIndex())
+                index = mainWidget.model.index(row, 8, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockEditor.sizeEdit.currentText()), Qt.EditRole)
         elif field.objectName() == u'Local':
             for row in rows:
-                index = mainWidget.model.index(row, 10, QModelIndex())
+                index = mainWidget.model.index(row, 9, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.locationEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Cidade':
             for row in rows:
-                index = mainWidget.model.index(row, 11, QModelIndex())
+                index = mainWidget.model.index(row, 10, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.cityEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Estado':
             for row in rows:
-                index = mainWidget.model.index(row, 12, QModelIndex())
+                index = mainWidget.model.index(row, 11, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.stateEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'País':
             for row in rows:
-                index = mainWidget.model.index(row, 13, QModelIndex())
+                index = mainWidget.model.index(row, 12, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.choose_one(autocomplete,
                             self.dockEditor.countryEdit.text())),
                             Qt.EditRole)
         elif field.objectName() == u'Latitude':
             for row in rows:
-                index = mainWidget.model.index(row, 14, QModelIndex())
+                index = mainWidget.model.index(row, 13, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.lat.text()), Qt.EditRole)
         elif field.objectName() == u'Longitude':
             for row in rows:
-                index = mainWidget.model.index(row, 15, QModelIndex())
+                index = mainWidget.model.index(row, 14, QModelIndex())
                 mainWidget.model.setData(index,
                         QVariant(self.dockGeo.long.text()), Qt.EditRole)
         elif field.objectName() == u'Data':
             current_date = self.dockThumb.dateedit.dateTime()
             for row in rows:
-                index = mainWidget.model.index(row, 16, QModelIndex())
+                index = mainWidget.model.index(row, 15, QModelIndex())
                 mainWidget.model.setData(index,
                     QVariant(self.dockThumb.iodate(current_date)), Qt.EditRole)
             self.dockThumb.edited = False
-        
+
         # Salva o current para evitar que volte para 0 após reset()
         oldindex = mainWidget.selectionModel.currentIndex()
         # Gambiarra para atualizar os valores da tabela
@@ -539,7 +532,7 @@ class MainWindow(QMainWindow):
 
     def pastedata(self):
         '''Cola metadados na(s) entrada(s) selecionada(s).
-        
+
         Usa valores guardados no objeto self.copied para colar nas entradas
         selecionadas.
         '''
@@ -565,54 +558,50 @@ class MainWindow(QMainWindow):
             elif index.column() == 4:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[4]), Qt.EditRole)
-            # Espécie
+            # Especialista
             elif index.column() == 5:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[5]), Qt.EditRole)
-            # Especialista
+            # Autor
             elif index.column() == 6:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[6]), Qt.EditRole)
-            # Autor
+            # Direitos
             elif index.column() == 7:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[7]), Qt.EditRole)
-            # Direitos
+            # Tamanho
             elif index.column() == 8:
                 mainWidget.model.setData(index,
-                        QVariant(self.copied[8]), Qt.EditRole)
-            # Tamanho
+                    QVariant(self.copied[8]), Qt.EditRole)
+            # Local
             elif index.column() == 9:
                 mainWidget.model.setData(index,
-                    QVariant(self.copied[9]), Qt.EditRole)
-            # Local
+                        QVariant(self.copied[9]), Qt.EditRole)
+            # Cidade
             elif index.column() == 10:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[10]), Qt.EditRole)
-            # Cidade
+            # Estado
             elif index.column() == 11:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[11]), Qt.EditRole)
-            # Estado
+            # País
             elif index.column() == 12:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[12]), Qt.EditRole)
-            # País
+            # Latitude
             elif index.column() == 13:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[13]), Qt.EditRole)
-            # Latitude
+            # Longitude
             elif index.column() == 14:
                 mainWidget.model.setData(index,
                         QVariant(self.copied[14]), Qt.EditRole)
-            # Longitude
+            # Data
             elif index.column() == 15:
                 mainWidget.model.setData(index,
-                        QVariant(self.copied[15]), Qt.EditRole)
-            # Data
-            elif index.column() == 16:
-                mainWidget.model.setData(index,
-                    QVariant(self.copied[16]), Qt.EditRole)
+                    QVariant(self.copied[15]), Qt.EditRole)
 
         # Gambiarra para atualizar os valores da tabela.
         mainWidget.setFocus(Qt.OtherFocusReason)
@@ -684,7 +673,7 @@ class MainWindow(QMainWindow):
         indexes = mainWidget.selectedIndexes()
         if indexes:
             for index in indexes:
-                if index.column() == 18:
+                if index.column() == 17:
                     mainWidget.model.setData(
                             index,
                             QVariant(', '.join(references)),
@@ -719,11 +708,11 @@ class MainWindow(QMainWindow):
 
     def commitmeta(self):
         '''Grava os metadados modificados na imagem.
-        
+
         Pega lista de imagens modificadas, procura entrada na tabela principal
         e retorna os metadados. Chama função que gravará estes metadados na
         imagem. Chama função que emitirá o sinal avisando a gravação foi
-        completada com sucesso.        
+        completada com sucesso.
         '''
         entries = self.dockUnsaved.mylist
         if entries:
@@ -771,7 +760,7 @@ class MainWindow(QMainWindow):
 
     def writemeta(self, values):
         '''Grava os metadados no arquivo.
-        
+
         Valores são salvos de acordo com os respectivos padrões, IPTC e EXIF.
         '''
         #XXX Organizar essa zona...
@@ -788,21 +777,20 @@ class MainWindow(QMainWindow):
 
                 meta = {
                         'title': values[1],
-                        'author': values[7],
-                        'city': values[11],
-                        'sublocation': values[10],
-                        'state': values[12],
-                        'country': values[13],
+                        'author': values[6],
+                        'city': values[10],
+                        'sublocation': values[9],
+                        'state': values[11],
+                        'country': values[12],
                         'taxon': values[4],
-                        'rights': values[8],
+                        'rights': values[7],
                         'caption': values[2],
-                        #'genus_sp': values[5],
-                        'size': values[9],
-                        'source': values[6],
-                        'date': values[16],
-                        'latitude': values[14],
-                        'longitude': values[15],
-                        'references': values[18],
+                        'size': values[8],
+                        'source': values[5],
+                        'date': values[15],
+                        'latitude': values[13],
+                        'longitude': values[14],
+                        'references': values[17],
                         }
 
                 # Lista com keywords
@@ -841,16 +829,15 @@ class MainWindow(QMainWindow):
                 info.data['object name'] = values[1]                    # title
                 info.data['caption/abstract'] = values[2]               # caption
                 info.data['headline'] = values[4]                       # taxon
-                #info.data['original transmission reference'] = values[5]# genus_sp
-                info.data['source'] = values[6]                         # source
-                info.data['by-line'] = values[7]                        # author
-                info.data['copyright notice'] = values[8]               # rights
-                info.data['special instructions'] = values[9]           # size
-                info.data['sub-location'] = values[10]                  # sublocation
-                info.data['city'] = values[11]                          # city
-                info.data['province/state'] = values[12]                # state
-                info.data['country/primary location name'] = values[13] # country
-                info.data['credit'] = values[18]                        # references
+                info.data['source'] = values[5]                         # source
+                info.data['by-line'] = values[6]                        # author
+                info.data['copyright notice'] = values[7]               # rights
+                info.data['special instructions'] = values[8]           # size
+                info.data['sub-location'] = values[9]                   # sublocation
+                info.data['city'] = values[10]                          # city
+                info.data['province/state'] = values[11]                # state
+                info.data['country/primary location name'] = values[12] # country
+                info.data['credit'] = values[17]                        # references
 
                 # Lista com keywords
                 if values[3] == '' or values[3] is None:
@@ -864,8 +851,8 @@ class MainWindow(QMainWindow):
 
                 # Exif
                 print 'Gravando EXIF...'
-                lat = values[14]
-                long = values[15]
+                lat = values[13]
+                long = values[14]
                 image = self.dockGeo.get_exif(values[0])
                 if lat and long:
                     newgps = self.dockGeo.geodict(lat, long)
@@ -904,12 +891,11 @@ class MainWindow(QMainWindow):
                                 % values[0], 5000)
 
                 # Data da criação da imagem
-                if values[16]:
+                if values[15]:
                     try:
-                        newdate = datetime.strptime(values[16], '%Y-%m-%d %H:%M:%S')
+                        newdate = datetime.strptime(values[15], '%Y-%m-%d %H:%M:%S')
                         image['Exif.Photo.DateTimeOriginal'] = newdate
                         image['Exif.Photo.DateTimeDigitized'] = newdate
-                        #print image['Exif.Image.DateTime']
                         image.write()
                     except:
                         print u'Erro na hora de gravar a data.'
@@ -1002,7 +988,7 @@ class MainWindow(QMainWindow):
 
     def imgfinder(self, folder, apply_only=False):
         '''Busca recursivamente imagens na pasta selecionada.
-        
+
         É possível definir as extensões a serem procuradas. Quando um arquivo é
         encontrado ele verifica se já está na tabela. Se não estiver, ele chama
         a função para extrair os metadados e insere uma nova entrada.
@@ -1017,7 +1003,7 @@ class MainWindow(QMainWindow):
         extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv', 'FLV')
 
         t0 = time.time()
-        
+
         # Buscador de imagens em ação
         for root, dirs, files in os.walk(folder):
             for filename in files:
@@ -1165,7 +1151,6 @@ class MainWindow(QMainWindow):
                 meta['caption'],
                 ', '.join(meta['tags']),
                 meta['taxon'],
-                meta['genus_sp'],
                 meta['source'],
                 meta['author'],
                 meta['rights'],
@@ -1480,19 +1465,19 @@ class RightClickMenu(QMenu):
                 '\nMarcadores:\t%s' % values[3] +
                 '\nTamanho:\t\t%s' % values[9] +
                 '\nTáxon:\t\t%s' % values[4] +
-                '\nEspecialista:\t%s' % values[6] +
-                '\nAutor:\t\t%s' % values[7] +
-                '\nDireitos:\t\t%s' % values[8] +
-                '\nLocal:\t\t%s' % values[10] +
-                '\nCidade:\t\t%s' % values[11] +
-                '\nEstado:\t\t%s' % values[12] +
-                '\nPaís:\t\t%s' % values[13] +
-                '\nData:\t\t%s' % values[16] +
-                '\nLatitude:\t\t%s' % values[14] +
-                '\nLongitude:\t\t%s' % values[15] +
-                '\nReferências:\t%s' % values[18]
+                '\nEspecialista:\t%s' % values[5] +
+                '\nAutor:\t\t%s' % values[6] +
+                '\nDireitos:\t\t%s' % values[7] +
+                '\nLocal:\t\t%s' % values[9] +
+                '\nCidade:\t\t%s' % values[10] +
+                '\nEstado:\t\t%s' % values[11] +
+                '\nPaís:\t\t%s' % values[12] +
+                '\nData:\t\t%s' % values[15] +
+                '\nLatitude:\t\t%s' % values[13] +
+                '\nLongitude:\t\t%s' % values[14] +
+                '\nReferências:\t%s' % values[17]
                 )
-        janela.setIcon(QMessageBox.Information) 
+        janela.setIcon(QMessageBox.Information)
         janela.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
         result = janela.exec_()
         if result == QMessageBox.Ok:
@@ -1660,19 +1645,19 @@ class EditCompletion(QWidget):
         elif current == u'Taxa':
             col = 4
         elif current == u'Especialistas':
-            col = 6
+            col = 5
         elif current == u'Autores':
-            col = 7
+            col = 6
         elif current == u'Direitos':
-            col = 8
+            col = 7
         elif current == u'Locais':
-            col = 10
+            col = 9
         elif current == u'Cidades':
-            col = 11
+            col = 10
         elif current == u'Estados':
-            col = 12
+            col = 11
         elif current == u'Países':
-            col = 13
+            col = 12
 
         rows = mainWidget.model.rowCount(mainWidget.model)
 
@@ -1730,7 +1715,7 @@ class MainTable(QTableView):
         hh.setStretchLastSection(True)
 
         self.cols_resized = [1, 4, 5, 6, 7, 8, 9, 10, 11,
-                12, 13, 14, 15, 16, 18]
+                12, 13, 14, 15, 17]
         for col in self.cols_resized:
             self.resizeColumnToContents(col)
         self.setColumnWidth(1, 250)
@@ -1741,10 +1726,8 @@ class MainTable(QTableView):
         self.setSortingEnabled(True)
         # Esconde nome do arquivo.
         self.hideColumn(0)
-        # Esconde espécie.
-        self.hideColumn(5)
         # Esconde timestamp.
-        self.hideColumn(17)
+        self.hideColumn(16)
         self.selecteditems = []
 
         # Right click
@@ -2119,28 +2102,26 @@ class DockEditor(QWidget):
             self.tagsEdit.setText(value.toString())
         elif index.column() == 4:
             self.taxonEdit.setText(value.toString())
-        #elif index.column() == 5:
-        #    self.spEdit.setText(value.toString())
-        elif index.column() == 6:
+        elif index.column() == 5:
             self.sourceEdit.setText(value.toString())
-        elif index.column() == 7:
+        elif index.column() == 6:
             self.authorEdit.setText(value.toString())
-        elif index.column() == 8:
+        elif index.column() == 7:
             self.rightsEdit.setText(value.toString())
-        elif index.column() == 9:
+        elif index.column() == 8:
             for interval in self.sizes:
                 if value.toString() == interval:
                     idx = self.sizes.index(interval)
                     self.sizeEdit.setCurrentIndex(idx)
                 else:
                     pass
-        elif index.column() == 10:
+        elif index.column() == 9:
             self.locationEdit.setText(value.toString())
-        elif index.column() == 11:
+        elif index.column() == 10:
             self.cityEdit.setText(value.toString())
-        elif index.column() == 12:
+        elif index.column() == 11:
             self.stateEdit.setText(value.toString())
-        elif index.column() == 13:
+        elif index.column() == 12:
             self.countryEdit.setText(value.toString())
 
     def setcurrent(self, values):
@@ -2150,20 +2131,19 @@ class DockEditor(QWidget):
             self.captionEdit.setText(values[2][1])
             self.tagsEdit.setText(values[3][1])
             self.taxonEdit.setText(values[4][1])
-            #self.spEdit.setText(values[5][1])
-            self.sourceEdit.setText(values[6][1])
-            self.authorEdit.setText(values[7][1])
-            self.rightsEdit.setText(values[8][1])
+            self.sourceEdit.setText(values[5][1])
+            self.authorEdit.setText(values[6][1])
+            self.rightsEdit.setText(values[7][1])
             for interval in self.sizes:
-                if values[9][1] == interval:
+                if values[8][1] == interval:
                     idx = self.sizes.index(interval)
                     self.sizeEdit.setCurrentIndex(idx)
                 else:
                     pass
-            self.locationEdit.setText(values[10][1])
-            self.cityEdit.setText(values[11][1])
-            self.stateEdit.setText(values[12][1])
-            self.countryEdit.setText(values[13][1])
+            self.locationEdit.setText(values[9][1])
+            self.cityEdit.setText(values[10][1])
+            self.stateEdit.setText(values[11][1])
+            self.countryEdit.setText(values[12][1])
             self.values = values
 
 
@@ -3273,20 +3253,19 @@ def initialize():
             u'Legenda',     #2
             u'Marcadores',  #3
             u'Táxon',       #4
-            u'Espécie',     #5
-            u'Especialista',#6
-            u'Autor',       #7
-            u'Direitos',    #8
-            u'Tamanho',     #9
-            u'Local',       #10
-            u'Cidade',      #11
-            u'Estado',      #12
-            u'País',        #13
-            u'Latitude',    #14
-            u'Longitude',   #15
-            u'Data',        #16
-            u'Timestamp',   #17
-            u'Referências', #18
+            u'Especialista',#5
+            u'Autor',       #6
+            u'Direitos',    #7
+            u'Tamanho',     #8
+            u'Local',       #9
+            u'Cidade',      #10
+            u'Estado',      #11
+            u'País',        #12
+            u'Latitude',    #13
+            u'Longitude',   #14
+            u'Data',        #15
+            u'Timestamp',   #16
+            u'Referências', #17
             ]
 
     # Nome do arquivo Pickle para tabela
