@@ -60,6 +60,8 @@ class MainWindow(QMainWindow):
     '''
     def __init__(self):
         QMainWindow.__init__(self)
+        # Truque para evitar segfault ao fechar o programa.
+        self.setAttribute(Qt.WA_DeleteOnClose, True)
         # Definições
         #XXX Global pela facilidade de acesso. Melhorar eventualmente.
         global mainWidget
@@ -1418,7 +1420,7 @@ class MainWindow(QMainWindow):
         '''O que fazer quando o programa for fechado.'''
         self.cachetable()
         self.writesettings()
-        #event.accept()
+        event.accept()
 
 
 class RightClickMenu(QMenu):
