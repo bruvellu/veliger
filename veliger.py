@@ -1781,6 +1781,10 @@ class MainTable(QTableView):
                 SIGNAL('currentChanged(QModelIndex, QModelIndex)'),
                 self.changecurrent)
 
+        self.connect(self.selectionModel,
+                SIGNAL('selectionChanged(QItemSelection, QItemSelection)'),
+                self.update_selection)
+
         self.connect(self.model,
                 SIGNAL('dataChanged(PyQt_PyObject, PyQt_PyObject, PyQt_PyObject)'),
                 self.editmultiple)
@@ -1824,25 +1828,14 @@ class MainTable(QTableView):
         self.emit(SIGNAL('delEntry(PyQt_PyObject)'), filename)
 
     def update_selection(self, selected, deselected):
-        '''Pega a entrada selecionada, extrai os valores envia para editor.
-
-        Os valores são enviados através de um sinal.
-        '''
-        #TODO Função toda obsoleta, ver se tem algo para aproveitar.
-        deselectedindexes = deselected.indexes()
-        if not deselectedindexes:
-            selectedindexes = selected.indexes()
-            self.selecteditems.append(selectedindexes)
+        '''Conta entradas selecionadas e atualiza status.'''
+        rows = self.selectionModel.selectedRows()
+        n_rows = len(rows)
+        if n_rows == 1:
+            status = u'%d entrada selecionada' % n_rows
         else:
-            del self.selecteditems[:]
-            selectedindexes = selected.indexes()
-            self.selecteditems.append(selectedindexes)
-        # Criando valores efetivamente da entrada selecionada.
-        values = []
-        for index in selectedindexes:
-            value = self.model.data(index, Qt.DisplayRole)
-            values.append((index, value.toString()))
-        #self.emit(SIGNAL('thisIsCurrent(values)'), values)
+            status = u'%d entradas selecionadas' % n_rows
+        self.parent.changeStatus(status)
 
     def changecurrent(self, current, previous):
         '''Identifica a célula selecionada, extrai valores e envia sinal.
@@ -2848,7 +2841,7 @@ class DockRefs(QWidget):
             self.parent.changeStatus(u'Nada pra deletar.')
 
     def matchfinder(self, candidate):
-        '''Buscador de duplicatas.'''
+        '''Buscador de duplicatas exatas.'''
         index = self.model.index(0, 0, QModelIndex())
         matches = self.model.match(index, 0, candidate, -1, Qt.MatchExactly)
         return matches
