@@ -2247,6 +2247,12 @@ class CompleterLineEdit(QLineEdit):
         self.emit(SIGNAL('tagLive(QString)'), self.text())
 
 
+class ChromePage(QWebPage):
+    '''Dummy class for GMaps dragging bug (Issue #24).'''
+    def userAgentForUrl(self, url):
+        return 'Chrome/1.0'
+
+
 class DockGeo(QWidget):
     '''Dock para editar a geolocalização da imagem.'''
     def __init__(self, parent):
@@ -2290,6 +2296,7 @@ class DockGeo(QWidget):
         self.geolocation = QWidget()
         self.geolocation.setLayout(self.editbox)
         self.map = QWebView(self)
+        self.map.setPage(ChromePage())
 
         # Tamanhos
         self.geolocation.setFixedWidth(200)
