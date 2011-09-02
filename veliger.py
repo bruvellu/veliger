@@ -762,10 +762,10 @@ class MainWindow(QMainWindow):
                 critical.setText(u'Metadados não foram gravados.')
                 critical.setInformativeText(
                         u'%s pode ter mudado de local, nome ou ' % filename +
-                        'estar protegido contra gravação. Tente importá-lo ' +
-                        'novamente. O arquivo será retirado da lista de ' +
-                        'imagens modificadas. Deseja deletar a entrada da ' +
-                        'tabela principal também?')
+                        u'estar protegido contra gravação. Tente importá-lo ' +
+                        u'novamente. O arquivo será retirado da lista de ' +
+                        u'imagens modificadas. Deseja deletar a entrada da ' +
+                        u'tabela principal também?')
                 critical.setIcon(QMessageBox.Critical)
                 critical.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
                 critical.exec_()
@@ -890,7 +890,7 @@ class MainWindow(QMainWindow):
                         self.changeStatus(
                                 u'Gravando novas coordenadas de %s... ERRO OCORREU!'
                                 % values[0], 5000)
-                        logger.warning('Erro na gravação do EXIF em %s...', values[0])
+                        logger.warning('Erro na gravação das coordenadas em %s...', values[0])
                 else:
                     try:
                         self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
@@ -903,7 +903,7 @@ class MainWindow(QMainWindow):
                         self.changeStatus(
                                 u'Deletando o campo Exif.GPSInfo de %s... pronto!'
                                 % values[0], 5000)
-                        logger.debug('Deletando campo Exif.GPSInfo de %s', 
+                        logger.debug('Campo Exif.GPSInfo de %s deletado!', 
                                 values[0])
                     except:
                         self.changeStatus(
@@ -1215,11 +1215,7 @@ class MainWindow(QMainWindow):
 
     def createthumbs(self, filepath, type):
         '''Cria thumbnails para as fotos novas usando o PIL.'''
-        hasdir = os.path.isdir(thumbdir)
-        if hasdir is True:
-            pass
-        else:
-            os.mkdir(thumbdir)
+        hasdir(thumbdir)
         filename = os.path.basename(filepath)
         thumbs = os.listdir(thumbdir)
         thumbpath = os.path.join(thumbdir, filename)
@@ -1228,7 +1224,7 @@ class MainWindow(QMainWindow):
         if type == 'photo':
             size = 400, 400
             copy(filepath, thumbdir)
-            self.changeStatus('%s copiado para %s' % (filename, thumbdir))
+            self.changeStatus(u'%s copiado para %s' % (filename, thumbdir))
             try:
                 im = Image.open(thumbpath)
                 im.thumbnail(size, Image.ANTIALIAS)
@@ -1494,23 +1490,23 @@ class RightClickMenu(QMenu):
                 u'%d arquivos serão modificados na pasta %s' % (len(filepaths),
                     folder))
         janela.setInformativeText(u'Os metadados abaixo serão gravados nas ' +
-                'imagens selecionadas. Confira antes de continuar.\n' +
-                '\nTítulo:\t\t%s' % values[1] +
-                '\nLegenda:\t\t%s' % values[2] +
-                '\nMarcadores:\t%s' % values[3] +
-                '\nTamanho:\t\t%s' % values[9] +
-                '\nTáxon:\t\t%s' % values[4] +
-                '\nEspecialista:\t%s' % values[5] +
-                '\nAutor:\t\t%s' % values[6] +
-                '\nDireitos:\t\t%s' % values[7] +
-                '\nLocal:\t\t%s' % values[9] +
-                '\nCidade:\t\t%s' % values[10] +
-                '\nEstado:\t\t%s' % values[11] +
-                '\nPaís:\t\t%s' % values[12] +
-                '\nData:\t\t%s' % values[15] +
-                '\nLatitude:\t\t%s' % values[13] +
-                '\nLongitude:\t\t%s' % values[14] +
-                '\nReferências:\t%s' % values[17]
+                u'imagens selecionadas. Confira antes de continuar.\n' +
+                u'\nTítulo:\t\t%s' % values[1] +
+                u'\nLegenda:\t\t%s' % values[2] +
+                u'\nMarcadores:\t%s' % values[3] +
+                u'\nTamanho:\t\t%s' % values[9] +
+                u'\nTáxon:\t\t%s' % values[4] +
+                u'\nEspecialista:\t%s' % values[5] +
+                u'\nAutor:\t\t%s' % values[6] +
+                u'\nDireitos:\t\t%s' % values[7] +
+                u'\nLocal:\t\t%s' % values[9] +
+                u'\nCidade:\t\t%s' % values[10] +
+                u'\nEstado:\t\t%s' % values[11] +
+                u'\nPaís:\t\t%s' % values[12] +
+                u'\nData:\t\t%s' % values[15] +
+                u'\nLatitude:\t\t%s' % values[13] +
+                u'\nLongitude:\t\t%s' % values[14] +
+                u'\nReferências:\t%s' % values[17]
                 )
         janela.setIcon(QMessageBox.Information)
         janela.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
@@ -1645,8 +1641,6 @@ class EditCompletion(QWidget):
             self.model = self.automodels.tags
         elif modellist == u'Taxa':
             self.model = self.automodels.taxa
-        #elif modellist == u'Espécies':
-        #    self.model = self.automodels.spp
         elif modellist == u'Especialistas':
             self.model = self.automodels.sources
         elif modellist == u'Autores':
@@ -3009,7 +3003,7 @@ class DockThumb(QWidget):
             file = os.path.basename(unicode(values[0][1]))
             self.filename.setText(unicode(file))
             self.dateedit.setDateTime(self.iodate(values[15][1]))
-            timestamp = values[17][1]
+            timestamp = values[16][1]
             self.timestamp.setText(timestamp)
 
             # Tenta abrir o cache
@@ -3185,7 +3179,6 @@ class ListModel(QAbstractListModel):
 
 #=== MAIN ===#
 
-
 def initialize():
     '''Inicia variáveis e parâmetros globais do programa.'''
     global tablepickle
@@ -3303,8 +3296,15 @@ def initialize():
         pickle.dump(autolists, f)
         f.close()
 
+def hasdir(folder):
+    '''Checks if dir exists and creates.'''
+    dir_check = os.path.isdir(folder)
+    if not dir_check:
+        os.mkdir(folder)
+
 if __name__ == '__main__':
     # Criando o logger.
+    hasdir('./logs')
     logger = logging.getLogger('veliger')
     logger.setLevel(logging.DEBUG)
     logger.propagate = False
@@ -3318,7 +3318,7 @@ if __name__ == '__main__':
     # Adiciona o console para o logger.
     logger.addHandler(console_handler)
     # Cria o manipulador do arquivo.log.
-    file_handler = logging.FileHandler('logs/veliger.log')
+    file_handler = logging.FileHandler('./logs/veliger.log')
     file_handler.setLevel(logging.DEBUG)
     # Define a formatação para o arquivo.log.
     file_handler.setFormatter(formatter)
@@ -3331,9 +3331,9 @@ if __name__ == '__main__':
     # Roda função de inicialização.
     initialize()
     app = QApplication(sys.argv)
-    app.setOrganizationName(u'CEBIMar-USP')
+    app.setOrganizationName(u'CEBIMar/USP')
     app.setOrganizationDomain(u'www.usp.br/cbm')
-    app.setApplicationName(u'VÉLIGER')
+    app.setApplicationName(u'Véliger')
     main = MainWindow()
 
     main.show()
