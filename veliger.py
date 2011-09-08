@@ -2761,7 +2761,7 @@ class DockRefs(QWidget):
 
         self.connect(self.syncbutton,
                 SIGNAL('clicked()'),
-                self.refresh)
+                self.sync_references)
 
         self.connect(mainWidget,
                 SIGNAL('delEntry(PyQt_PyObject)'),
@@ -2778,34 +2778,54 @@ class DockRefs(QWidget):
                         Qt.DisplayRole).toString()))
         self.emit(SIGNAL('refSync(PyQt_PyObject)'), total)
 
-    def refresh(self):
-        '''Acessa coleção de referências remota e refaz a lista.'''
-        self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...', 5000)
-        keys = ['year', 'authors', 'title', 'publication_outlet', 'volume',
-                'issue', 'pages']
+    def get_mendeley(self):
+        '''Cria instância para o cliente do Mendeley.'''
         try:
             mendeley = Mendeley()
-            raw_dic = mendeley.documents_details
-            total_results = mendeley.total_results
+            return mendeley
+        except:
+            logger.warning('Erro ao criar cliente do Mendeley.')
+            return None
+
+    def parse_references(self, documents_details):
+        '''Parse dictionary with documents details from Mendeley.'''
+        try:
+            keys = ['year', 'authors', 'title', 'publication_outlet', 'volume',
+                    'issue', 'pages']
             document_list = []
-            for k, v in raw_dic.iteritems():
+            for k, v in documents_details.iteritems():
                 # Checa se key existe antes para evitar erros.
                 for key in keys:
                     if not key in v:
                         v[key] = ''
-                citation = [k, v['year'], ', '.join(v['authors']), v['title'],
+                # Processa autores.
+                authors = ', '.join([a['surname'] for a in v['authors']])
+                entry = [k, v['year'], authors, v['title'],
                         v['publication_outlet'], v['volume'], v['issue'],
                         v['pages']]
-                document_list.append(citation)
-            self.clearlist()
+                document_list.append(entry)
+            return document_list
+        except:
+            logger.warning('Ocorreu erro no parsing de alguma referência.')
+            return None
+
+    def sync_references(self):
+        '''Acessa coleção de referências remota e refaz a lista.'''
+        self.parent.changeStatus(u'Conectando ao Mendeley, aguarde...', 5000)
+        mendeley = self.get_mendeley()
+        logger.debug('Conectado ao Mendeley, processando documentos.')
+        document_list = self.parse_references(mendeley.documents_details)
+        total_results = mendeley.total_results
+        self.clearlist()
+        try:
             for citation in document_list:
                 self.model.insert_rows(0, 1, QModelIndex(), citation)
             self.parent.changeStatus(u'%s referências carregadas com sucesso do Mendeley.' % total_results, 5000)
             logger.info('%s referências carregadas do Mendeley.', 
                     total_results)
         except:
-            self.parent.changeStatus(u'Ocorreu algum erro. Talvez o Mendeley esteja fora do ar.', 5000)
-            logger.warning('Erro. Talvez o Mendeley esteja fora do ar.')
+            self.parent.changeStatus(u'Erro para inserir referências na tabela.', 5000)
+            logger.warning('Erro para inserir referências na tabela.')
 
     def insertentry(self, index, value, oldvalue):
         '''Insere entrada na lista.
