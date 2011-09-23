@@ -400,8 +400,13 @@ class MainWindow(QMainWindow):
     def put_dot(self, caption):
         '''Coloca ponto final em legendas, se precisar.'''
         if caption:
-            if not caption.endsWith('.'):
-                caption = caption + '.'
+            # Necessário para lidar com str e QString.
+            try:
+                if not caption.endswith('.'):
+                    caption = caption + '.'
+            except:
+                if not caption.endsWith('.'):
+                    caption = caption + '.'
         return caption
 
     def savedata(self, field, autocomplete):
@@ -857,7 +862,7 @@ class MainWindow(QMainWindow):
 
                 # Lista com keywords
                 if values[3] == '' or values[3] is None:
-                    info.keywords = []                                  # keywords
+                    info.data['keywords'] = []                          # keywords
                 else:
                     keywords = values[3].split(',')
                     keywords = [keyword.lower().strip() for keyword in keywords if
@@ -882,35 +887,24 @@ class MainWindow(QMainWindow):
                         image['Exif.GPSInfo.GPSLongitude'] = (
                                 newgps['longdeg'], newgps['longmin'], newgps['longsec'])
                         image.write()
-                        self.changeStatus(
-                                u'Gravando novas coordenadas de %s... pronto!'
-                                % values[0], 5000)
+                        self.changeStatus(u'Gravando novas coordenadas de %s... pronto!' % values[0], 5000)
                         logger.debug('EXIF gravado em %s', values[0])
                     except:
-                        self.changeStatus(
-                                u'Gravando novas coordenadas de %s... ERRO OCORREU!'
-                                % values[0], 5000)
+                        self.changeStatus(u'Gravando novas coordenadas de %s... ERRO OCORREU!' % values[0], 5000)
                         logger.warning('Erro na gravação das coordenadas em %s...', values[0])
                 else:
                     try:
-                        self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' %
-                                values[0])
+                        self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s...' % values[0])
                         image.__delitem__('Exif.GPSInfo.GPSLatitudeRef')
                         image.__delitem__('Exif.GPSInfo.GPSLatitude')
                         image.__delitem__('Exif.GPSInfo.GPSLongitudeRef')
                         image.__delitem__('Exif.GPSInfo.GPSLongitude')
                         image.write()
-                        self.changeStatus(
-                                u'Deletando o campo Exif.GPSInfo de %s... pronto!'
-                                % values[0], 5000)
-                        logger.debug('Campo Exif.GPSInfo de %s deletado!', 
-                                values[0])
+                        self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s... pronto!' % values[0], 5000)
+                        logger.debug('Campo Exif.GPSInfo de %s deletado!', values[0])
                     except:
-                        self.changeStatus(
-                                u'Deletando o campo Exif.GPSInfo de %s... ERRO!'
-                                % values[0], 5000)
-                        logger.debug('Erro para deletar Exif.GPSInfo de %s', 
-                                values[0])
+                        self.changeStatus(u'Deletando o campo Exif.GPSInfo de %s... ERRO!' % values[0], 5000)
+                        logger.debug('Erro para deletar Exif.GPSInfo de %s', values[0])
 
                 # Data da criação da imagem
                 if values[15]:
@@ -937,7 +931,6 @@ class MainWindow(QMainWindow):
                         logger.debug('Erro para gravar data de %s.', values[0])
 
             except:
-                #FIXME Erro não está aparecendo...
                 logger.warning('Ocorreu algum erro.')
                 self.changeStatus(u'ERRO!', 10000)
                 critical = QMessageBox()
@@ -1037,10 +1030,10 @@ class MainWindow(QMainWindow):
         for root, dirs, files in os.walk(folder):
             for filename in files:
                 if filename.endswith(extensions):
+                    filepath = os.path.join(root, filename)
                     if not apply_only:
                         matches = self.matchfinder(filename)
                         if len(matches) == 0:
-                            filepath = os.path.join(root, filename)
                             entrymeta = self.createmeta(filepath)
                             self.model.insert_rows(0, 1, QModelIndex(), entrymeta)
                             n_new += 1
@@ -1051,7 +1044,6 @@ class MainWindow(QMainWindow):
                             pass
                         n_all += 1
                     else:
-                        filepath = os.path.join(root, filename)
                         applylist.append(filepath)
 
         else: # Se o número máximo de imagens for atingido, finalizar
@@ -1169,10 +1161,13 @@ class MainWindow(QMainWindow):
                 meta_text = ''
 
             if meta_text:
-                meta_dic = pickle.load(meta_text)
-                meta_text.close()
-                # Atualiza meta com valores do arquivo acessório.
-                meta.update(meta_dic)
+                try:
+                    meta_dic = pickle.load(meta_text)
+                    meta_text.close()
+                    # Atualiza meta com valores do arquivo acessório.
+                    meta.update(meta_dic)
+                except:
+                    logger.warning('Pickle is corrupted: %s', meta_text)
 
         # Criando timestamp
         meta['timestamp'] = time.strftime('%Y-%m-%d %H:%M:%S',
@@ -3329,6 +3324,13 @@ def hasdir(folder):
     if not dir_check:
         os.mkdir(folder)
 
+def debug_trace():
+  '''Set a tracepoint in the Python debugger that works with Qt'''
+  from PyQt4.QtCore import pyqtRemoveInputHook
+  from pdb import set_trace
+  pyqtRemoveInputHook()
+  set_trace()
+
 if __name__ == '__main__':
     # Criando o logger.
     hasdir('./logs')
@@ -3362,6 +3364,6 @@ if __name__ == '__main__':
     app.setOrganizationDomain(u'www.usp.br/cbm')
     app.setApplicationName(u'Véliger')
     main = MainWindow()
-
     main.show()
+
     sys.exit(app.exec_())
