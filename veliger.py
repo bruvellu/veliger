@@ -23,7 +23,7 @@ import logging
 import operator
 import os
 import pickle
-import pyexiv2 # Versão 0.3.0
+import pyexiv2  # Versão 0.3.0
 import re
 import sys
 import subprocess
@@ -37,8 +37,8 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 
-from mendeley import Mendeley # Referências
-from iptcinfo import IPTCInfo # iptcinfo.py
+from mendeley import Mendeley  # Referências
+from iptcinfo import IPTCInfo  # iptcinfo.py
 
 # Gerado com: pyrcc4 -o recursos.py recursos.qrc
 import recursos
