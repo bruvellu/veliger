@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 #
 # VÉLIGER
-# Copyleft 2010 - Bruno C. Vellutini | organelas.com
+# Copyleft 2010-2013 - Bruno C. Vellutini | organelas.com
 #
-#TODO Definir licença.
 #
 
 '''Editor de metadados do banco de imagens do CEBIMar-USP.
@@ -44,7 +43,7 @@ from iptcinfo import IPTCInfo  # iptcinfo.py
 import recursos
 
 __author__ = 'Bruno Vellutini'
-__copyright__ = 'Copyright 2010, CEBIMar/USP'
+__copyright__ = 'Copyright 2010-2013, CEBIMar/USP'
 __credits__ = 'Bruno C. Vellutini'
 __license__ = 'DEFINIR'
 __version__ = '0.9.6'
@@ -439,7 +438,7 @@ class MainWindow(QMainWindow):
             for row in rows:
                 index = mainWidget.model.index(row, 2, QModelIndex())
                 mainWidget.model.setData(index,
-                        QVariant(self.put_dot(self.dockEditor.captionEdit.text())), 
+                        QVariant(self.put_dot(self.dockEditor.captionEdit.text())),
                         Qt.EditRole)
         elif field.objectName() == u'Marcadores':
             for row in rows:
@@ -683,7 +682,7 @@ class MainWindow(QMainWindow):
             self.changeStatus(
                     u'Metadados de %d figuras convertidos para UTF-8'
                     % n_all)
-            logger.debug(u'Metadados de %d figuras convertidos para UTF-8', 
+            logger.debug(u'Metadados de %d figuras convertidos para UTF-8',
                     n_all)
         else:
             self.changeStatus(u'Nenhuma imagem foi modificada')
@@ -847,18 +846,18 @@ class MainWindow(QMainWindow):
             # Criar objeto com metadados
             info = IPTCInfo(values[0], force=True, inp_charset='utf-8')
             try:
-                info.data['object name'] = values[1]                    # title
-                info.data['caption/abstract'] = self.put_dot(values[2]) # caption
-                info.data['headline'] = values[4]                       # taxon
-                info.data['source'] = values[5]                         # source
-                info.data['by-line'] = values[6]                        # author
-                info.data['copyright notice'] = values[7]               # rights
-                info.data['special instructions'] = values[8]           # size
-                info.data['sub-location'] = values[9]                   # sublocation
-                info.data['city'] = values[10]                          # city
-                info.data['province/state'] = values[11]                # state
-                info.data['country/primary location name'] = values[12] # country
-                info.data['credit'] = values[17]                        # references
+                info.data['object name'] = values[1]                     # title
+                info.data['caption/abstract'] = self.put_dot(values[2])  # caption
+                info.data['headline'] = values[4]                        # taxon
+                info.data['source'] = values[5]                          # source
+                info.data['by-line'] = values[6]                         # author
+                info.data['copyright notice'] = values[7]                # rights
+                info.data['special instructions'] = values[8]            # size
+                info.data['sub-location'] = values[9]                    # sublocation
+                info.data['city'] = values[10]                           # city
+                info.data['province/state'] = values[11]                 # state
+                info.data['country/primary location name'] = values[12]  # country
+                info.data['credit'] = values[17]                         # references
 
                 # Lista com keywords
                 if values[3] == '' or values[3] is None:
@@ -1018,10 +1017,12 @@ class MainWindow(QMainWindow):
         applylist = []
 
         # Tupla para o endswith()
-        extensions = ('jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov', 'MOV', 
-                'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV', 'dv', 'DV', 'mpg', 
-                'MPG', 'mpeg', 'MPEG', 'flv', 'FLV', 'm2ts', 'M2TS', 'wmv', 
-                'WMV')
+        extensions = (
+            'jpg', 'JPG', 'jpeg', 'JPEG', 'avi', 'AVI', 'mov',
+            'MOV', 'mp4', 'MP4', 'ogg', 'OGG', 'ogv', 'OGV',
+            'dv', 'DV', 'mpg', 'MPG', 'mpeg', 'MPEG', 'flv',
+            'FLV', 'm2ts', 'M2TS', 'wmv', 'WMV'
+            )
 
         t0 = time.time()
 
@@ -1046,7 +1047,7 @@ class MainWindow(QMainWindow):
                     else:
                         applylist.append(filepath)
 
-        else: # Se o número máximo de imagens for atingido, finalizar
+        else:  # Se o número máximo de imagens for atingido, finalizar.
             if not apply_only:
                 t1 = time.time()
                 t = t1 - t0
@@ -1086,20 +1087,20 @@ class MainWindow(QMainWindow):
 
             # Definindo as variáveis IPTC
             meta = {
-                    'title': info.data['object name'],# 5
-                    'tags': info.data['keywords'],# 25
-                    'author': info.data['by-line'],# 80
-                    'city': info.data['city'],# 90
-                    'sublocation': info.data['sub-location'],# 92
-                    'state': info.data['province/state'],# 95
-                    'country': info.data['country/primary location name'],# 101
-                    'taxon': info.data['headline'],# 105
-                    'rights': info.data['copyright notice'],# 116
-                    'caption': info.data['caption/abstract'],# 120
-                    'genus_sp': info.data['original transmission reference'],# 103
-                    'size': info.data['special instructions'],# 40
-                    'source': info.data['source'],# 115
-                    'references': info.data['credit'],# 110
+                    'title': info.data['object name'],  # 5
+                    'tags': info.data['keywords'],  # 25
+                    'author': info.data['by-line'],  # 80
+                    'city': info.data['city'],  # 90
+                    'sublocation': info.data['sub-location'],  # 92
+                    'state': info.data['province/state'],  # 95
+                    'country': info.data['country/primary location name'],  # 101
+                    'taxon': info.data['headline'],  # 105
+                    'rights': info.data['copyright notice'],  # 116
+                    'caption': info.data['caption/abstract'],  # 120
+                    'genus_sp': info.data['original transmission reference'],  # 103
+                    'size': info.data['special instructions'],  # 40
+                    'source': info.data['source'],  # 115
+                    'references': info.data['credit'],  # 110
                     }
 
             # Extraindo GPS
@@ -1354,7 +1355,7 @@ class MainWindow(QMainWindow):
 
         Cria backup dos conteúdos da tabela e da lista de imagens modificadas.
         '''
-        #TODO Integrar com QSettings()? Tentei, mas o pickle não funcionou por 
+        #TODO Integrar com QSettings()? Tentei, mas o pickle não funcionou por
         # motivos de encoding e salvar a lista diretamente também não... :(
         self.changeStatus(u'Salvando backup...')
         # Tabela
@@ -1382,7 +1383,7 @@ class MainWindow(QMainWindow):
             autolists[k] = comps
         pickle.dump(autolists, autocache)
         autocache.close()
-        logger.debug('Backup salvo nos arquivos: %s, %s, %s, %s', tablepickle, 
+        logger.debug('Backup salvo nos arquivos: %s, %s, %s, %s', tablepickle,
                 refspickle, listpickle, autopickle)
 
     def readsettings(self):
@@ -1448,7 +1449,7 @@ class RightClickMenu(QMenu):
             warning.setInformativeText(
                     u'Para aplicar os metadados em uma pasta somente uma ' +
                     u'entrada da tabela principal deve estar selecionada.')
-            warning.setIcon(QMessageBox.Warning) 
+            warning.setIcon(QMessageBox.Warning)
             warning.setStandardButtons(QMessageBox.Ok)
             warning.exec_()
 
@@ -1908,7 +1909,7 @@ class TableModel(QAbstractTableModel):
 
     def insert_rows(self, position, rows, parent, entry):
         '''Insere entrada na tabela.'''
-        self.beginInsertRows(parent, position, position+rows-1)
+        self.beginInsertRows(parent, position, position + rows - 1)
         for row in xrange(rows):
             self.mydata.append(entry)
         self.endInsertRows()
@@ -1916,7 +1917,7 @@ class TableModel(QAbstractTableModel):
 
     def remove_rows(self, position, rows, parent):
         '''Remove entrada da tabela.'''
-        self.beginRemoveRows(parent, position, position+rows-1)
+        self.beginRemoveRows(parent, position, position + rows - 1)
         for row in xrange(rows):
             self.mydata.pop(position)
         self.endRemoveRows()
@@ -2489,7 +2490,7 @@ class DockGeo(QWidget):
                     draggable: true,
                 });
 
-                document.getElementById("markerlocation").value = 
+                document.getElementById("markerlocation").value =
                 marker.position;
 
                 map.setCenter(location);
@@ -2621,7 +2622,6 @@ class DockGeo(QWidget):
                 }
         return gps
 
-
     def get_decimal(self, ref, deg, min, sec):
         '''Descobre o valor decimal das coordenadas.'''
         decimal_min = (min * 60.0 + sec) / 60.0
@@ -2744,7 +2744,6 @@ class DockRefs(QWidget):
         self.buttons = QWidget()
         self.buttons.setLayout(self.vbox)
 
-
         self.hbox = QHBoxLayout()
         self.hbox.addWidget(self.view)
         self.hbox.addWidget(self.buttons)
@@ -2816,7 +2815,7 @@ class DockRefs(QWidget):
             for citation in document_list:
                 self.model.insert_rows(0, 1, QModelIndex(), citation)
             self.parent.changeStatus(u'%s referências carregadas com sucesso do Mendeley.' % total_results, 5000)
-            logger.info('%s referências carregadas do Mendeley.', 
+            logger.info('%s referências carregadas do Mendeley.',
                     total_results)
         except:
             self.parent.changeStatus(u'Erro para inserir referências na tabela.', 5000)
@@ -3050,7 +3049,7 @@ class DockThumb(QWidget):
             self.thumb.setText(u'Imagem indisponível')
             pass
         else:
-            scaledpic = self.pic.scaled(self.width(), self.height()-65,
+            scaledpic = self.pic.scaled(self.width(), self.height() - 65,
                     Qt.KeepAspectRatio, Qt.FastTransformation)
             self.thumb.setPixmap(scaledpic)
 
@@ -3184,7 +3183,7 @@ class ListModel(QAbstractListModel):
 
     def insert_rows(self, position, rows, parent, entry):
         '''Insere linhas.'''
-        self.beginInsertRows(parent, position, position+rows-1)
+        self.beginInsertRows(parent, position, position + rows - 1)
         for row in xrange(rows):
             self.mylist.append(entry)
         self.endInsertRows()
@@ -3192,7 +3191,7 @@ class ListModel(QAbstractListModel):
 
     def remove_rows(self, position, rows, parent):
         '''Remove linhas.'''
-        self.beginRemoveRows(parent, position, position+rows-1)
+        self.beginRemoveRows(parent, position, position + rows - 1)
         for row in xrange(rows):
             self.mylist.pop(position)
         self.endRemoveRows()
@@ -3212,30 +3211,30 @@ def initialize():
     global updatelist
     global refslist
     global autolists
-    global thumbdir # global para ser usada no pixmapcache
+    global thumbdir  # global para ser usada no pixmapcache
 
     thumbdir = 'thumbs'
 
     # Cabeçalho horizontal da tabela principal
     header = [
-            u'Arquivo',     #0
-            u'Título',      #1
-            u'Legenda',     #2
-            u'Marcadores',  #3
-            u'Táxon',       #4
-            u'Especialista',#5
-            u'Autor',       #6
-            u'Direitos',    #7
-            u'Tamanho',     #8
-            u'Local',       #9
-            u'Cidade',      #10
-            u'Estado',      #11
-            u'País',        #12
-            u'Latitude',    #13
-            u'Longitude',   #14
-            u'Data',        #15
-            u'Timestamp',   #16
-            u'Referências', #17
+            u'Arquivo',       # 0
+            u'Título',        # 1
+            u'Legenda',       # 2
+            u'Marcadores',    # 3
+            u'Táxon',         # 4
+            u'Especialista',  # 5
+            u'Autor',         # 6
+            u'Direitos',      # 7
+            u'Tamanho',       # 8
+            u'Local',         # 9
+            u'Cidade',        # 10
+            u'Estado',        # 11
+            u'País',          # 12
+            u'Latitude',      # 13
+            u'Longitude',     # 14
+            u'Data',          # 15
+            u'Timestamp',     # 16
+            u'Referências',   # 17
             ]
 
     # Nome do arquivo Pickle para tabela
@@ -3260,7 +3259,7 @@ def initialize():
             u'', u'', u'', u'', u'',
             u'', u'', u'', u'', u'',
             u'', u'', u'',
-            ],]
+            ], ]
 
     # Nome do arquivo Pickle para lista
     listpickle = '.listcache'
@@ -3287,7 +3286,7 @@ def initialize():
         refslist = [[
             u'', u'', u'', u'',
             u'', u'', u'', u'',
-            ],]
+            ], ]
 
     # Nome do arquivo Pickle para autocomplete
     autopickle = '.autocomplete'
@@ -3318,18 +3317,20 @@ def initialize():
         pickle.dump(autolists, f)
         f.close()
 
+
 def hasdir(folder):
     '''Checks if dir exists and creates.'''
     dir_check = os.path.isdir(folder)
     if not dir_check:
         os.mkdir(folder)
 
+
 def debug_trace():
-  '''Set a tracepoint in the Python debugger that works with Qt'''
-  from PyQt4.QtCore import pyqtRemoveInputHook
-  from pdb import set_trace
-  pyqtRemoveInputHook()
-  set_trace()
+    '''Set a tracepoint in the Python debugger that works with Qt'''
+    from PyQt4.QtCore import pyqtRemoveInputHook
+    from pdb import set_trace
+    pyqtRemoveInputHook()
+    set_trace()
 
 if __name__ == '__main__':
     # Criando o logger.
